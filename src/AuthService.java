@@ -32,6 +32,7 @@ public class AuthService {
             ps.setString(1, email);
             ps.setString(2, password);
 
+
             ResultSet rs = ps.executeQuery();
             if (!rs.next()) return null;
 
@@ -43,6 +44,7 @@ public class AuthService {
             );
 
         } catch (SQLException e) {
+            System.out.println(e);
             return null;
         }
     }
@@ -87,7 +89,15 @@ public class AuthService {
             return null;
 
         } catch (SQLException e) {
-            return "Email already exists.";
+
+            // ✅ SADECE email unique ise
+            if (e.getErrorCode() == 1062) {
+                return "Email already exists.";
+            }
+
+            // ❗ Diğer tüm hatalar
+            e.printStackTrace();
+            return "Unexpected database error.";
         }
     }
 }

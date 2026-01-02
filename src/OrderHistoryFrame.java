@@ -47,13 +47,12 @@ public class OrderHistoryFrame extends JFrame {
             }
 
             String status = model.getValueAt(row, 2).toString();
-            if (!"SHIPPED".equals(status)) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "You can leave a review only for SHIPPED orders."
-                );
+            if (!("SHIPPED".equals(status) || "DELIVERED".equals(status))) {
+                JOptionPane.showMessageDialog(this,
+                        "You can leave a review only for SHIPPED or DELIVERED orders.");
                 return;
             }
+
 
             int orderId = (int) model.getValueAt(row, 0);
 

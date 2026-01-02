@@ -3,9 +3,9 @@ import java.awt.*;
 
 public class RestockFrame extends JFrame {
 
-    public RestockFrame(int productId) {
+    public RestockFrame(int productId, boolean isDestock) {
 
-        setTitle("Restock Product");
+        setTitle(isDestock ? "Destock Product" : "Restock Product");
         setSize(350, 250);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -13,7 +13,7 @@ public class RestockFrame extends JFrame {
         JTextField qtyField = new JTextField();
         JTextField noteField = new JTextField();
 
-        JButton restockBtn = new JButton("Restock");
+        JButton restockBtn = new JButton(isDestock ? "Destock" : "Restock");
 
         restockBtn.addActionListener(e -> {
             int qty;
@@ -26,25 +26,28 @@ public class RestockFrame extends JFrame {
                 return;
             }
 
-            boolean ok = RestockService.restockProduct(   // 🔴 FIX BURADA
-                    productId,
-                    UserSession.getUserId(),
-                    qty,
-                    noteField.getText()
-            );
+            boolean ok = isDestock
+                    ? RestockService.destockProduct(productId, UserSession.getUserId(), qty, noteField.getText())
+                    : RestockService.restockProduct(productId, UserSession.getUserId(), qty, noteField.getText());
+
 
             if (ok) {
                 JOptionPane.showMessageDialog(this, "Stock updated.");
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Restock failed.");
+                JOptionPane.showMessageDialog(this, "Stock update failed.");
             }
         });
 
         JPanel p = new JPanel(new GridLayout(5,1,8,8));
         p.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-        p.add(new JLabel("Added Quantity:"));
+        String qtyLabelText = isDestock
+                ? "Decreased Quantity:"
+                : "Added Quantity:";
+
+        p.add(new JLabel(qtyLabelText));
+
         p.add(qtyField);
         p.add(new JLabel("Note (optional):"));
         p.add(noteField);
