@@ -5,6 +5,10 @@ public class SellerDashboard extends JFrame {
 
     public SellerDashboard() {
 
+        // 🔥 CRITICAL FIX
+        // Seller ilk kez giriyorsa default catalog otomatik oluşturulur
+        CatalogService.getOrCreateCatalog(UserSession.getUserId());
+
         setTitle("Seller Dashboard");
         setSize(450, 320);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -22,20 +26,20 @@ public class SellerDashboard extends JFrame {
         JButton manage = new JButton("Manage Catalog & Products");
         JButton orders = new JButton("View Orders");
         JButton stats = new JButton("Seller Statistics");
-        JButton logout = new JButton("Logout");
         JButton reviews = new JButton("View Reviews");
-
+        JButton logout = new JButton("Logout");
 
         // =====================
         // ACTIONS
         // =====================
 
-        // 🔴 MUST open real management screen
         manage.addActionListener(e -> new ManageProductsFrame());
 
         orders.addActionListener(e -> new SellerOrdersFrame());
 
         stats.addActionListener(e -> new SellerStatsFrame());
+
+        reviews.addActionListener(e -> new SellerReviewsFrame());
 
         logout.addActionListener(e -> {
             UserSession.clear();
@@ -43,14 +47,12 @@ public class SellerDashboard extends JFrame {
             dispose();
         });
 
-        reviews.addActionListener(e -> new SellerReviewsFrame());
-
         panel.add(welcome);
         panel.add(manage);
         panel.add(orders);
         panel.add(stats);
-        panel.add(logout);
         panel.add(reviews);
+        panel.add(logout);
 
         add(panel);
         setVisible(true);

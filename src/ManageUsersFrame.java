@@ -140,7 +140,19 @@ public class ManageUsersFrame extends JFrame {
         if (AdminUserService.deleteUser(userId)) {
             loadUsers();
         } else {
-            JOptionPane.showMessageDialog(this, "Delete failed.");
+            if (!AdminUserService.deleteUser(userId)) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "User cannot be deleted.\n\n" +
+                                "• Admin users cannot be removed\n" +
+                                "• Users with orders cannot be deleted",
+                        "Delete Failed",
+                        JOptionPane.WARNING_MESSAGE
+                );
+            } else {
+                loadUsers();
+            }
+
         }
     }
 

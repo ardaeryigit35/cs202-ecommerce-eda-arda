@@ -56,25 +56,8 @@ public class AdminUserService {
     }
 
     // ========================
-    // DELETE USER
+    // ADD USER (ADMIN)
     // ========================
-    public static boolean deleteUser(int userId) {
-
-        String sql = "DELETE FROM User WHERE UserID = ?";
-
-        try (Connection c = DB.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-
-            ps.setInt(1, userId);
-            return ps.executeUpdate() == 1;
-
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-    // ========================
-// ADD USER (ADMIN)
-// ========================
     public static boolean addUser(
             String email,
             String password,
@@ -82,12 +65,14 @@ public class AdminUserService {
             String role
     ) {
 
-        // 🔒 ADMIN EKLENEMEZ
-        if (!role.equals("CUSTOMER") && !role.equals("SELLER"))
+        // 🔒 ADMIN eklenemez (tek admin var)
+        if (!role.equals("CUSTOMER") && !role.equals("SELLER")) {
             return false;
+        }
 
         String insertUser =
                 "INSERT INTO User (email, password, UserName) VALUES (?, ?, ?)";
+
         String insertRole =
                 "INSERT INTO UserRole (UserID, role) VALUES (?, ?)";
 
@@ -96,6 +81,7 @@ public class AdminUserService {
 
             int userId;
 
+            // 1️⃣ User
             try (PreparedStatement ps =
                          c.prepareStatement(insertUser, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -112,31 +98,38 @@ public class AdminUserService {
                 userId = rs.getInt(1);
             }
 
-            try (PreparedStatement ps2 = c.prepareStatement(insertRole)) {
-                ps2.setInt(1, userId);
-                ps2.setString(2, role);
-                ps2.executeUpdate();
+            // 2️⃣ Role
+            try (PreparedStatement ps =
+                         c.prepareStatement(insertRole)) {
+
+                ps.setInt(1, userId);
+                ps.setString(2, role);
+                ps.executeUpdate();
             }
 
             c.commit();
             return true;
 
         } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }
 
-
     // ========================
-// UPDATE USER ROLE (ADMIN)
-// ========================
+    // UPDATE USER ROLE
+    // ========================
     public static boolean updateUserRole(int userId, String newRole) {
 
         if (!newRole.equals("CUSTOMER") && !newRole.equals("SELLER"))
-            return false; // ADMIN role değiştirilemez
+            return false; // ADMIN yapılamaz
 
-        String sql =
-                "UPDATE UserRole SET role = ? WHERE UserID = ? AND role <> 'ADMIN'";
+        String sql = """
+            UPDATE UserRole
+            SET role = ?
+            WHERE UserID = ?
+              AND role <> 'ADMIN'
+        """;
 
         try (Connection c = DB.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -146,8 +139,89 @@ public class AdminUserService {
             return ps.executeUpdate() == 1;
 
         } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
     }
 
+    // ========================
+    // DELETE USER (FULL FIX)
+    // ========================
+    public static boolean deleteUser(int userId) {
+
+        String checkAdmin = """
+            SELECT role FROM UserRole WHERE UserID = ?
+        """;
+
+        String checkOrders = """
+            SELECT 1 FROM OrderTable
+            WHERE CustomerID = ? OR SellerID = ?
+            LIMIT 1
+        """;
+
+        String deleteProducts =
+                "DELETE FROM Product WHERE SellerID = ?";
+
+        String deleteCatalog =
+                "DELETE FROM Catalog WHERE SellerID = ?";
+
+        String deleteRole =
+                "DELETE FROM UserRole WHERE UserID = ?";
+
+        String deleteUser =
+                "DELETE FROM User WHERE UserID = ?";
+
+        try (Connection c = DB.getConnection()) {
+            c.setAutoCommit(false);
+
+            // 🔒 ADMIN silinemez
+            try (PreparedStatement ps = c.prepareStatement(checkAdmin)) {
+                ps.setInt(1, userId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next() && "ADMIN".equals(rs.getString(1))) {
+                    return false;
+                }
+            }
+
+            // 🔒 Siparişi olan user silinemez
+            try (PreparedStatement ps = c.prepareStatement(checkOrders)) {
+                ps.setInt(1, userId);
+                ps.setInt(2, userId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return false;
+                }
+            }
+
+            // 🧹 SELLER cleanup
+            try (PreparedStatement ps = c.prepareStatement(deleteProducts)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+
+            try (PreparedStatement ps = c.prepareStatement(deleteCatalog)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+
+            // 🧹 Role
+            try (PreparedStatement ps = c.prepareStatement(deleteRole)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+
+            // 🧹 User
+            try (PreparedStatement ps = c.prepareStatement(deleteUser)) {
+                ps.setInt(1, userId);
+                ps.executeUpdate();
+            }
+
+            c.commit();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
