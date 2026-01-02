@@ -7,7 +7,7 @@ public class SellerDashboard extends JFrame {
 
         int sellerId = UserSession.getUserId();
 
-        // 🔥 KRİTİK: Seller girince catalog otomatik oluşur
+        // 🔥 Seller girince catalog otomatik oluşur
         CatalogService.createCatalogIfNotExists(sellerId);
 
         setTitle("Seller Dashboard");
@@ -25,7 +25,7 @@ public class SellerDashboard extends JFrame {
         welcome.setFont(new Font("Arial", Font.BOLD, 16));
 
         JButton manageProductsBtn = new JButton("Manage Products");
-        JButton changeCatalogBtn = new JButton("Change Catalog Name"); // ✅ YENİ
+        JButton changeCatalogBtn = new JButton("Change Catalog Name");
         JButton ordersBtn = new JButton("View Orders");
         JButton statsBtn = new JButton("Seller Statistics");
         JButton logoutBtn = new JButton("Logout");
@@ -40,6 +40,11 @@ public class SellerDashboard extends JFrame {
                 new ChangeCatalogNameFrame(sellerId)
         );
 
+        // ✅ FIX: View Orders artık ÇALIŞIYOR
+        ordersBtn.addActionListener(e ->
+                new SellerOrdersFrame(sellerId)
+        );
+
         // ▶ Logout
         logoutBtn.addActionListener(e -> {
             UserSession.clear();
@@ -49,7 +54,7 @@ public class SellerDashboard extends JFrame {
 
         panel.add(welcome);
         panel.add(manageProductsBtn);
-        panel.add(changeCatalogBtn); // ✅ EKLENDİ
+        panel.add(changeCatalogBtn);
         panel.add(ordersBtn);
         panel.add(statsBtn);
         panel.add(logoutBtn);

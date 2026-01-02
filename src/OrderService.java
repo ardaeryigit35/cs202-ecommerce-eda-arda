@@ -119,4 +119,72 @@ public class OrderService {
 
         return list;
     }
+    // ========================
+// DTO (SELLER)
+// ========================
+    public static class SellerOrderItem {
+        public final int orderId;
+        public final String customerName;
+        public final String orderDate;
+        public final String status;
+        public final double totalAmount;
+
+        public SellerOrderItem(int orderId,
+                               String customerName,
+                               String orderDate,
+                               String status,
+                               double totalAmount) {
+            this.orderId = orderId;
+            this.customerName = customerName;
+            this.orderDate = orderDate;
+            this.status = status;
+            this.totalAmount = totalAmount;
+        }
+    }
+
+    // ========================
+// GET ORDERS BY SELLER
+// ========================
+    public static List<SellerOrderItem> getOrdersBySeller(int sellerId) {
+
+        List<SellerOrderItem> list = new ArrayList<>();
+
+        String sql = """
+        SELECT o.OrderID,
+               u.UserName,
+               o.order_date,
+               o.order_status,
+               SUM(oi.quantity * oi.unit_price) AS total
+        FROM OrderTable o
+        JOIN User u ON u.UserID = o.CustomerID
+        JOIN OrderItems oi ON oi.OrderID = o.OrderID
+        WHERE o.SellerID = ?
+          AND o.order_status != 'CART'
+        GROUP BY o.OrderID, u.UserName, o.order_date, o.order_status
+        ORDER BY o.order_date DESC
+    """;
+
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setInt(1, sellerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(new SellerOrderItem(
+                        rs.getInt("OrderID"),
+                        rs.getString("UserName"),
+                        rs.getString("order_date"),
+                        rs.getString("order_status"),
+                        rs.getDouble("total")
+                ));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
 }
