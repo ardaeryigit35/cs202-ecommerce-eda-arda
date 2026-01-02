@@ -21,20 +21,48 @@ public class ReviewFrame extends JFrame {
         JButton submitBtn = new JButton("Submit Review");
 
         submitBtn.addActionListener(e -> {
-            boolean ok = ReviewService.addReview(
-                    orderId,
-                    productId,
-                    sellerId,
-                    UserSession.getUserId(),
-                    (Integer) ratingBox.getSelectedItem(),
-                    commentArea.getText()
-            );
+            try {
+                boolean ok = ReviewService.addReview(
+                        orderId,
+                        productId,
+                        sellerId,
+                        UserSession.getUserId(),
+                        (Integer) ratingBox.getSelectedItem(),
+                        commentArea.getText()
+                );
 
-            if (ok) {
-                JOptionPane.showMessageDialog(this, "Review submitted.");
-                dispose();
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Review submitted.");
+                    dispose();
+                } else {
+                    // ok=false ama exception gelmediyse: genel başarısızlık
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Review could not be submitted.",
+                            "Review Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+
+            } catch (IllegalStateException ex) {
+                // ✅ duplicate review gibi business-rule hatası
+                JOptionPane.showMessageDialog(
+                        this,
+                        ex.getMessage(),
+                        "Review Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Review could not be submitted.",
+                        "Review Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         });
+
 
         JPanel p = new JPanel(new GridLayout(5,1,8,8));
         p.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));

@@ -68,13 +68,14 @@ public class ReviewService {
             return true;
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    e.getMessage(),
-                    "Review Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return false;
+            // MySQL duplicate key
+            if (e.getErrorCode() == 1062) {
+                throw new IllegalStateException(
+                        "You cannot submit more than one review for the same order/product."
+                );
+            }
+            e.printStackTrace();
+            throw new RuntimeException("Review could not be submitted.");
         }
     }
 }
