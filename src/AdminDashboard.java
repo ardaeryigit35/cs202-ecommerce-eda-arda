@@ -21,18 +21,20 @@ public class AdminDashboard extends JFrame {
         add(title, BorderLayout.NORTH);
 
         // ===== CENTER BUTTONS =====
-        JPanel centerPanel = new JPanel(new GridLayout(5, 1, 10, 10));
+        JPanel centerPanel = new JPanel(new GridLayout(6, 1, 10, 10));
         centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
 
         JButton usersBtn = new JButton("Manage Users");
         JButton categoriesBtn = new JButton("Manage Categories");
         JButton shipmentsBtn = new JButton("Manage Shipments");
+        JButton reviewsBtn = new JButton("See All Reviews");
         JButton statsBtn = new JButton("System Statistics");
         JButton logoutBtn = new JButton("Logout");
 
         centerPanel.add(usersBtn);
         centerPanel.add(categoriesBtn);
         centerPanel.add(shipmentsBtn);
+        centerPanel.add(reviewsBtn);
         centerPanel.add(statsBtn);
         centerPanel.add(logoutBtn);
 
@@ -44,8 +46,14 @@ public class AdminDashboard extends JFrame {
         categoriesBtn.addActionListener(e -> new ManageCategoriesFrame());
 
         shipmentsBtn.addActionListener(e -> new ManageShipmentsFrame());
+        reviewsBtn.addActionListener(e -> {
+            new AdminReviewFrame();
+        });
+
+
 
         statsBtn.addActionListener(e -> new AdminStatsFrame());
+
 
 
 
