@@ -14,8 +14,11 @@ public class SellerOrderService {
         public final double totalAmount;
         public final boolean confirmed;
 
-        public SellerOrder(int orderId, Timestamp orderDate,
-                           String status, double totalAmount, boolean confirmed) {
+        public SellerOrder(int orderId,
+                           Timestamp orderDate,
+                           String status,
+                           double totalAmount,
+                           boolean confirmed) {
             this.orderId = orderId;
             this.orderDate = orderDate;
             this.status = status;
@@ -29,17 +32,17 @@ public class SellerOrderService {
     // ========================
     public static List<SellerOrder> getOrdersForSeller(int sellerId) {
 
+        // 🔴 ÖNEMLİ: total artık OrderItems SUM değil
+        // ✅ OrderTable.total_amount kullanılıyor
         String sql = """
             SELECT o.OrderID,
                    o.order_date,
                    o.order_status,
                    o.confirmed_by_seller,
-                   SUM(oi.quantity * oi.unit_price) AS total
+                   o.total_amount
             FROM OrderTable o
-            JOIN OrderItems oi ON oi.OrderID = o.OrderID
             WHERE o.SellerID = ?
               AND o.order_status <> 'CART'
-            GROUP BY o.OrderID, o.order_date, o.order_status, o.confirmed_by_seller
             ORDER BY o.order_date DESC
         """;
 
@@ -56,7 +59,7 @@ public class SellerOrderService {
                             rs.getInt("OrderID"),
                             rs.getTimestamp("order_date"),
                             rs.getString("order_status"),
-                            rs.getDouble("total"),
+                            rs.getDouble("total_amount"),
                             rs.getBoolean("confirmed_by_seller")
                     ));
                 }
@@ -68,37 +71,56 @@ public class SellerOrderService {
 
         return list;
     }
+
+    // ========================
+    // CONFIRM ORDER (MARK AS PAID)
+    // ========================
     public static boolean confirmOrder(int orderId, int sellerId) {
 
+        // ✅ İNDİRİMLİ TOTAL BURADAN OKUNUR
         String totalSql = """
-        SELECT SUM(oi.quantity * oi.unit_price) AS total
-        FROM OrderItems oi
-        WHERE oi.OrderID = ?
-    """;
+            SELECT total_amount
+            FROM OrderTable
+            WHERE OrderID = ?
+              AND SellerID = ?
+              AND order_status = 'PENDING'
+        """;
 
         String updateOrder = """
-        UPDATE OrderTable
-        SET order_status = 'PAID',
-            confirmed_by_seller = TRUE
-        WHERE OrderID = ?
-          AND SellerID = ?
-          AND order_status = 'PENDING'
-    """;
+            UPDATE OrderTable
+            SET order_status = 'PAID',
+                confirmed_by_seller = TRUE
+            WHERE OrderID = ?
+              AND SellerID = ?
+              AND order_status = 'PENDING'
+        """;
+
+        String paySql = """
+            INSERT INTO Payment
+            (OrderID, payment_method, payment_date, payment_amount, payment_status)
+            VALUES (?, 'CARD', CURRENT_DATE, ?, 'DONE')
+        """;
 
         try (Connection conn = DB.getConnection()) {
             conn.setAutoCommit(false);
 
-            double total = 0.0;
+            double totalAmount;
 
-            // 1) total hesapla
+            // 1️⃣ doğru (indirimli) total al
             try (PreparedStatement ps = conn.prepareStatement(totalSql)) {
                 ps.setInt(1, orderId);
+                ps.setInt(2, sellerId);
+
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) total = rs.getDouble("total");
+                    if (!rs.next()) {
+                        conn.rollback();
+                        return false;
+                    }
+                    totalAmount = rs.getDouble("total_amount");
                 }
             }
 
-            // 2) sadece UNCONFIRMED ise PAID yap
+            // 2️⃣ order -> PAID
             int updated;
             try (PreparedStatement ps = conn.prepareStatement(updateOrder)) {
                 ps.setInt(1, orderId);
@@ -111,16 +133,10 @@ public class SellerOrderService {
                 return false;
             }
 
-            // 3) Payment kaydı oluştur (DONE)
-            // Not: PaymentService şu an projede var ama kullanılmıyordu. Burada kullanıyoruz.
-            String paySql = """
-            INSERT INTO Payment
-            (OrderID, payment_method, payment_date, payment_amount, payment_status)
-            VALUES (?, 'CARD', CURRENT_DATE, ?, 'DONE')
-        """;
+            // 3️⃣ payment oluştur (İNDİRİMLİ TUTAR)
             try (PreparedStatement ps = conn.prepareStatement(paySql)) {
                 ps.setInt(1, orderId);
-                ps.setDouble(2, total);
+                ps.setDouble(2, totalAmount);
                 ps.executeUpdate();
             }
 
@@ -134,14 +150,13 @@ public class SellerOrderService {
     }
 
     // ========================
-    // CONFIRM & SHIP ORDER
+    // SHIP ORDER
     // ========================
     public static boolean shipOrder(int orderId, int sellerId) {
 
         String update = """
             UPDATE OrderTable
-            SET order_status = 'SHIPPED',
-                confirmed_by_seller = TRUE
+            SET order_status = 'SHIPPED'
             WHERE OrderID = ?
               AND SellerID = ?
               AND order_status = 'PAID'
@@ -161,15 +176,19 @@ public class SellerOrderService {
             return false;
         }
     }
+
+    // ========================
+    // MARK AS DELIVERED
+    // ========================
     public static boolean markAsDelivered(int orderId, int sellerId) {
 
         String sql = """
-        UPDATE OrderTable
-        SET order_status = 'DELIVERED'
-        WHERE OrderID = ?
-          AND SellerID = ?
-          AND order_status = 'SHIPPED'
-    """;
+            UPDATE OrderTable
+            SET order_status = 'DELIVERED'
+            WHERE OrderID = ?
+              AND SellerID = ?
+              AND order_status = 'SHIPPED'
+        """;
 
         try (Connection conn = DB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -184,5 +203,4 @@ public class SellerOrderService {
             return false;
         }
     }
-
 }

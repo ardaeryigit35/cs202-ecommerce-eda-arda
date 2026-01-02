@@ -10,14 +10,24 @@ public class CartFrame extends JFrame {
     private JButton removeBtn;
     private JButton submitBtn;
 
+    // =========================
+    // DISCOUNT STATE
+    // =========================
+    private JTextField discountField;
+    private JLabel discountInfo;
+    private Integer appliedDiscountId = null;
+    private int appliedPercent = 0;
+
     public CartFrame() {
 
         setTitle("Your Shopping Cart");
-        setSize(600, 380);
+        setSize(600, 420);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // ===== TABLE MODEL =====
+        // =========================
+        // TABLE MODEL
+        // =========================
         model = new DefaultTableModel(
                 new Object[]{"ProductID", "Product", "Qty", "Price", "Total"}, 0
         ) {
@@ -30,7 +40,23 @@ public class CartFrame extends JFrame {
         table = new JTable(model);
         table.removeColumn(table.getColumnModel().getColumn(0)); // hide ProductID
 
-        // ===== BUTTONS =====
+        // =========================
+        // DISCOUNT PANEL
+        // =========================
+        JPanel discountPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        discountField = new JTextField(10);
+        JButton applyBtn = new JButton("Apply Code");
+        discountInfo = new JLabel(" ");
+
+        discountPanel.add(new JLabel("Discount Code:"));
+        discountPanel.add(discountField);
+        discountPanel.add(applyBtn);
+        discountPanel.add(discountInfo);
+
+        // =========================
+        // BUTTONS
+        // =========================
         removeBtn = new JButton("Remove Selected Item");
         submitBtn = new JButton("Submit Order");
 
@@ -42,16 +68,76 @@ public class CartFrame extends JFrame {
         bottom.add(removeBtn);
         bottom.add(submitBtn);
 
+        // =========================
+        // LAYOUT
+        // =========================
+        add(discountPanel, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
+
+        // =========================
+        // APPLY DISCOUNT ACTION
+        // =========================
+        applyBtn.addActionListener(e -> applyDiscount());
 
         reloadCart();
         setVisible(true);
     }
 
-    // ============================
+    // =========================
+    // APPLY DISCOUNT
+    // =========================
+    private void applyDiscount() {
+
+        String code = discountField.getText().trim();
+        if (code.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Enter a discount code.");
+            return;
+        }
+
+        CartService.DiscountResult res =
+                CartService.validateDiscountCode(
+                        UserSession.getUserId(),
+                        code
+                );
+
+        if (res == null) {
+            discountInfo.setText("❌ Invalid or expired code");
+            appliedDiscountId = null;
+            appliedPercent = 0;
+            recalculateTotals();
+            return;
+        }
+
+        appliedDiscountId = res.discountId;
+        appliedPercent = res.percent;
+
+        discountInfo.setText("✅ Discount applied: %" + appliedPercent);
+        recalculateTotals();
+    }
+
+    // =========================
+    // RECALCULATE TOTALS (UI)
+    // =========================
+    private void recalculateTotals() {
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int qty = (int) model.getValueAt(i, 2);
+            double price = (double) model.getValueAt(i, 3);
+
+            double total = qty * price;
+
+            if (appliedPercent > 0) {
+                total = total * (100 - appliedPercent) / 100.0;
+            }
+
+            model.setValueAt(total, i, 4);
+        }
+    }
+
+    // =========================
     // REMOVE ITEM
-    // ============================
+    // =========================
     private void handleRemove() {
 
         int row = table.getSelectedRow();
@@ -66,7 +152,10 @@ public class CartFrame extends JFrame {
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() {
-                CartService.removeItem(UserSession.getUserId(), productId);
+                CartService.removeItem(
+                        UserSession.getUserId(),
+                        productId
+                );
                 return null;
             }
 
@@ -77,9 +166,9 @@ public class CartFrame extends JFrame {
         }.execute();
     }
 
-    // ============================
-    // SUBMIT ORDER
-    // ============================
+    // =========================
+    // SUBMIT ORDER (DISCOUNT INCLUDED)
+    // =========================
     private void handleSubmit() {
 
         setButtons(false);
@@ -88,7 +177,10 @@ public class CartFrame extends JFrame {
 
             @Override
             protected Boolean doInBackground() {
-                return CartService.submitOrder(UserSession.getUserId());
+                return CartService.submitOrder(
+                        UserSession.getUserId(),
+                        appliedDiscountId
+                );
             }
 
             @Override
@@ -109,7 +201,7 @@ public class CartFrame extends JFrame {
                             CartFrame.this,
                             "Order submitted successfully!"
                     );
-                    dispose(); // CART kapanır
+                    dispose();
 
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(
@@ -123,16 +215,18 @@ public class CartFrame extends JFrame {
         }.execute();
     }
 
-    // ============================
+    // =========================
     // LOAD CART
-    // ============================
+    // =========================
     private void reloadCart() {
 
         new SwingWorker<List<CartService.CartItem>, Void>() {
 
             @Override
             protected List<CartService.CartItem> doInBackground() {
-                return CartService.getCartItems(UserSession.getUserId());
+                return CartService.getCartItems(
+                        UserSession.getUserId()
+                );
             }
 
             @Override
@@ -155,6 +249,9 @@ public class CartFrame extends JFrame {
                                 i.total
                         });
                     }
+
+                    // discount varsa tekrar uygula
+                    recalculateTotals();
 
                     setButtons(true);
 

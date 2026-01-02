@@ -15,7 +15,7 @@ public class SellerDashboard extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(new GridLayout(7, 1, 8, 8));
+        JPanel panel = new JPanel(new GridLayout(8, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JLabel welcome = new JLabel(
@@ -28,6 +28,7 @@ public class SellerDashboard extends JFrame {
         JButton changeCatalogBtn = new JButton("Change Catalog Name");
         JButton ordersBtn = new JButton("View Orders");
         JButton reviewsBtn = new JButton("My Product Reviews");
+        JButton discountBtn = new JButton("Create Discount Code");
 
 
         JButton statsBtn = new JButton("Seller Statistics");
@@ -43,6 +44,7 @@ public class SellerDashboard extends JFrame {
         changeCatalogBtn.addActionListener(e ->
                 new ChangeCatalogNameFrame(sellerId)
         );
+        discountBtn.addActionListener(e -> new SellerDiscountFrame());
 
         // ✅ FIX: View Orders artık ÇALIŞIYOR
         ordersBtn.addActionListener(e ->
@@ -68,7 +70,9 @@ public class SellerDashboard extends JFrame {
         panel.add(ordersBtn);
         panel.add(reviewsBtn);
         panel.add(statsBtn);
+        panel.add(discountBtn);
         panel.add(logoutBtn);
+
 
         add(panel);
         setVisible(true);

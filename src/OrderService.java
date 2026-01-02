@@ -5,7 +5,7 @@ import java.util.List;
 public class OrderService {
 
     // ========================
-    // ORDER LIST DTO
+    // ORDER LIST DTO (CUSTOMER)
     // ========================
     public static class OrderItem {
         public final int orderId;
@@ -23,7 +23,7 @@ public class OrderService {
     }
 
     // ========================
-    // ORDER PRODUCT DTO (🔴 EKSİKTİ)
+    // ORDER PRODUCT DTO
     // ========================
     public static class OrderProduct {
         public final int productId;
@@ -38,21 +38,19 @@ public class OrderService {
     }
 
     // ========================
-    // GET CUSTOMER ORDERS
+    // GET CUSTOMER ORDERS ✅ (FIXED)
     // ========================
     public static List<OrderItem> getOrdersByCustomer(int customerId) {
 
         String sql = """
-            SELECT o.OrderID,
-                   o.order_date,
-                   o.order_status,
-                   SUM(oi.quantity * oi.unit_price) AS total
-            FROM OrderTable o
-            JOIN OrderItems oi ON oi.OrderID = o.OrderID
-            WHERE o.CustomerID = ?
-              AND o.order_status <> 'CART'
-            GROUP BY o.OrderID, o.order_date, o.order_status
-            ORDER BY o.order_date DESC
+            SELECT OrderID,
+                   order_date,
+                   order_status,
+                   total_amount
+            FROM OrderTable
+            WHERE CustomerID = ?
+              AND order_status <> 'CART'
+            ORDER BY order_date DESC
         """;
 
         List<OrderItem> list = new ArrayList<>();
@@ -68,7 +66,7 @@ public class OrderService {
                             rs.getInt("OrderID"),
                             rs.getTimestamp("order_date"),
                             rs.getString("order_status"),
-                            rs.getDouble("total")
+                            rs.getDouble("total_amount")
                     ));
                 }
             }
@@ -81,7 +79,7 @@ public class OrderService {
     }
 
     // ========================
-    // GET PRODUCTS OF AN ORDER (🔴 EKSİKTİ)
+    // GET PRODUCTS OF AN ORDER
     // ========================
     public static List<OrderProduct> getProductsByOrder(int orderId) {
 
@@ -119,9 +117,10 @@ public class OrderService {
 
         return list;
     }
+
     // ========================
-// DTO (SELLER)
-// ========================
+    // SELLER DTO
+    // ========================
     public static class SellerOrderItem {
         public final int orderId;
         public final String customerName;
@@ -143,26 +142,24 @@ public class OrderService {
     }
 
     // ========================
-// GET ORDERS BY SELLER
-// ========================
+    // GET ORDERS BY SELLER ✅ (FIXED)
+    // ========================
     public static List<SellerOrderItem> getOrdersBySeller(int sellerId) {
 
         List<SellerOrderItem> list = new ArrayList<>();
 
         String sql = """
-        SELECT o.OrderID,
-               u.UserName,
-               o.order_date,
-               o.order_status,
-               SUM(oi.quantity * oi.unit_price) AS total
-        FROM OrderTable o
-        JOIN User u ON u.UserID = o.CustomerID
-        JOIN OrderItems oi ON oi.OrderID = o.OrderID
-        WHERE o.SellerID = ?
-          AND o.order_status != 'CART'
-        GROUP BY o.OrderID, u.UserName, o.order_date, o.order_status
-        ORDER BY o.order_date DESC
-    """;
+            SELECT o.OrderID,
+                   u.UserName,
+                   o.order_date,
+                   o.order_status,
+                   o.total_amount
+            FROM OrderTable o
+            JOIN User u ON u.UserID = o.CustomerID
+            WHERE o.SellerID = ?
+              AND o.order_status <> 'CART'
+            ORDER BY o.order_date DESC
+        """;
 
         try (Connection c = DB.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -176,7 +173,7 @@ public class OrderService {
                         rs.getString("UserName"),
                         rs.getString("order_date"),
                         rs.getString("order_status"),
-                        rs.getDouble("total")
+                        rs.getDouble("total_amount")
                 ));
             }
 
@@ -186,5 +183,4 @@ public class OrderService {
 
         return list;
     }
-
 }
