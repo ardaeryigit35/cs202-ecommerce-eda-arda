@@ -68,6 +68,70 @@ public class SellerOrderService {
 
         return list;
     }
+    public static boolean confirmOrder(int orderId, int sellerId) {
+
+        String totalSql = """
+        SELECT SUM(oi.quantity * oi.unit_price) AS total
+        FROM OrderItems oi
+        WHERE oi.OrderID = ?
+    """;
+
+        String updateOrder = """
+        UPDATE OrderTable
+        SET order_status = 'PAID',
+            confirmed_by_seller = TRUE
+        WHERE OrderID = ?
+          AND SellerID = ?
+          AND order_status = 'PENDING'
+    """;
+
+        try (Connection conn = DB.getConnection()) {
+            conn.setAutoCommit(false);
+
+            double total = 0.0;
+
+            // 1) total hesapla
+            try (PreparedStatement ps = conn.prepareStatement(totalSql)) {
+                ps.setInt(1, orderId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) total = rs.getDouble("total");
+                }
+            }
+
+            // 2) sadece UNCONFIRMED ise PAID yap
+            int updated;
+            try (PreparedStatement ps = conn.prepareStatement(updateOrder)) {
+                ps.setInt(1, orderId);
+                ps.setInt(2, sellerId);
+                updated = ps.executeUpdate();
+            }
+
+            if (updated != 1) {
+                conn.rollback();
+                return false;
+            }
+
+            // 3) Payment kaydı oluştur (DONE)
+            // Not: PaymentService şu an projede var ama kullanılmıyordu. Burada kullanıyoruz.
+            String paySql = """
+            INSERT INTO Payment
+            (OrderID, payment_method, payment_date, payment_amount, payment_status)
+            VALUES (?, 'CARD', CURRENT_DATE, ?, 'DONE')
+        """;
+            try (PreparedStatement ps = conn.prepareStatement(paySql)) {
+                ps.setInt(1, orderId);
+                ps.setDouble(2, total);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     // ========================
     // CONFIRM & SHIP ORDER
@@ -80,7 +144,8 @@ public class SellerOrderService {
                 confirmed_by_seller = TRUE
             WHERE OrderID = ?
               AND SellerID = ?
-              AND order_status = 'PENDING'
+              AND order_status = 'PAID'
+              AND confirmed_by_seller = TRUE
         """;
 
         try (Connection conn = DB.getConnection();

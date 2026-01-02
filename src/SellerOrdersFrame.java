@@ -27,19 +27,25 @@ public class SellerOrdersFrame extends JFrame {
         table = new JTable(model);
         JScrollPane scroll = new JScrollPane(table);
 
+        JButton confirmBtn = new JButton("Confirm (Mark as Paid)");
         JButton shipBtn = new JButton("Mark as Shipped");
         JButton refreshBtn = new JButton("Refresh");
         JButton closeBtn = new JButton("Close");
 
+
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.add(confirmBtn);
         bottom.add(shipBtn);
         bottom.add(refreshBtn);
         bottom.add(closeBtn);
+
 
         add(scroll, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
 
         loadOrders();
+
+        confirmBtn.addActionListener(e -> confirmSelectedOrder());
 
         shipBtn.addActionListener(e -> shipSelectedOrder());
         refreshBtn.addActionListener(e -> loadOrders());
@@ -73,13 +79,11 @@ public class SellerOrdersFrame extends JFrame {
         }
 
         String status = model.getValueAt(row, 2).toString();
-        if (!"PENDING".equals(status)) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Only PENDING orders can be shipped."
-            );
+        if (!"PAID".equals(status)) {
+            JOptionPane.showMessageDialog(this, "Only PAID orders can be shipped.");
             return;
         }
+
 
         int orderId = (int) model.getValueAt(row, 0);
 
@@ -90,6 +94,29 @@ public class SellerOrdersFrame extends JFrame {
 
         if (ok) {
             JOptionPane.showMessageDialog(this, "Order marked as SHIPPED.");
+            loadOrders();
+        } else {
+            JOptionPane.showMessageDialog(this, "Operation failed.");
+        }
+    }
+    private void confirmSelectedOrder() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select an order.");
+            return;
+        }
+
+        String status = model.getValueAt(row, 2).toString();
+        if (!"PENDING".equals(status)) {
+            JOptionPane.showMessageDialog(this, "Only PENDING orders can be confirmed.");
+            return;
+        }
+
+        int orderId = (int) model.getValueAt(row, 0);
+
+        boolean ok = SellerOrderService.confirmOrder(orderId, UserSession.getUserId());
+        if (ok) {
+            JOptionPane.showMessageDialog(this, "Order confirmed. Status is now PAID.");
             loadOrders();
         } else {
             JOptionPane.showMessageDialog(this, "Operation failed.");

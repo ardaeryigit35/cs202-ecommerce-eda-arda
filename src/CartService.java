@@ -242,10 +242,11 @@ public class CartService {
         """;
 
         String updateOrder = """
-            UPDATE OrderTable
-            SET order_status = 'PENDING'
-            WHERE OrderID = ?
+        UPDATE OrderTable
+        SET order_status = 'PENDING'
+        WHERE OrderID = ?
         """;
+
 
         try (Connection conn = DB.getConnection()) {
             conn.setAutoCommit(false);
