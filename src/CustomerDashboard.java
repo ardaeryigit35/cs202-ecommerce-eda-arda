@@ -10,7 +10,7 @@ public class CustomerDashboard extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(new GridLayout(5, 1, 8, 8));
+        JPanel panel = new JPanel(new GridLayout(6, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JLabel welcome = new JLabel(
@@ -22,6 +22,7 @@ public class CustomerDashboard extends JFrame {
         JButton browseBtn = new JButton("Browse Products");
         JButton cartBtn   = new JButton("My Cart");      // 🔥 EKLENDİ
         JButton ordersBtn = new JButton("My Orders");
+        JButton statsBtn = new JButton("My Statistics");
         JButton logoutBtn = new JButton("Logout");
 
         browseBtn.addActionListener(e ->
@@ -36,6 +37,8 @@ public class CustomerDashboard extends JFrame {
         ordersBtn.addActionListener(e ->
                 new OrderHistoryFrame()
         );
+        statsBtn.addActionListener(e -> new CustomerStatsFrame());
+
 
         logoutBtn.addActionListener(e -> {
             UserSession.clear();
@@ -47,6 +50,7 @@ public class CustomerDashboard extends JFrame {
         panel.add(browseBtn);
         panel.add(cartBtn);
         panel.add(ordersBtn);
+        panel.add(statsBtn);
         panel.add(logoutBtn);
 
         add(panel);

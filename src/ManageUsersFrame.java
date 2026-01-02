@@ -28,18 +28,14 @@ public class ManageUsersFrame extends JFrame {
         JButton refreshBtn = new JButton("Refresh");
         JButton deleteBtn = new JButton("Delete User");
         JButton addBtn = new JButton("Add User");
-        JButton changeRoleBtn = new JButton("Change Role");
         JButton closeBtn = new JButton("Close");
 
-        JComboBox<String> roleBox =
-                new JComboBox<>(new String[]{"CUSTOMER", "SELLER"});
+
 
         JPanel top = new JPanel();
         top.add(refreshBtn);
         top.add(deleteBtn);
-        top.add(new JLabel("New Role:"));
-        top.add(roleBox);
-        top.add(changeRoleBtn);
+
         top.add(addBtn);
         top.add(closeBtn);
 
@@ -53,41 +49,6 @@ public class ManageUsersFrame extends JFrame {
         refreshBtn.addActionListener(e -> loadUsers());
 
         deleteBtn.addActionListener(e -> deleteSelectedUser());
-
-        changeRoleBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Select a user.");
-                return;
-            }
-
-            int userId = (int) model.getValueAt(row, 0);
-            String currentRole = model.getValueAt(row, 3).toString();
-            String newRole = roleBox.getSelectedItem().toString();
-
-            if (currentRole.equals("ADMIN")) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "ADMIN role cannot be changed."
-                );
-                return;
-            }
-
-            if (currentRole.equals(newRole)) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "User already has this role."
-                );
-                return;
-            }
-
-            if (AdminUserService.updateUserRole(userId, newRole)) {
-                JOptionPane.showMessageDialog(this, "Role updated.");
-                loadUsers();
-            } else {
-                JOptionPane.showMessageDialog(this, "Role update failed.");
-            }
-        });
 
         addBtn.addActionListener(e -> openAddUserDialog());
 

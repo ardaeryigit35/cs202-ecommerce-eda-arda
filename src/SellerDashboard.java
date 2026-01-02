@@ -27,7 +27,9 @@ public class SellerDashboard extends JFrame {
         JButton manageProductsBtn = new JButton("Manage Products");
         JButton changeCatalogBtn = new JButton("Change Catalog Name");
         JButton ordersBtn = new JButton("View Orders");
+
         JButton statsBtn = new JButton("Seller Statistics");
+
         JButton logoutBtn = new JButton("Logout");
 
         // ▶ Manage Products
@@ -43,6 +45,10 @@ public class SellerDashboard extends JFrame {
         // ✅ FIX: View Orders artık ÇALIŞIYOR
         ordersBtn.addActionListener(e ->
                 new SellerOrdersFrame(sellerId)
+        );
+        // ▶ Seller Statistics (FIX)
+        statsBtn.addActionListener(e ->
+                new SellerStatsFrame()
         );
 
         // ▶ Logout

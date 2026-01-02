@@ -30,12 +30,14 @@ public class ManageProductsFrame extends JFrame {
 
         JButton addBtn = new JButton("Add Product");
         JButton restockBtn = new JButton("Restock");
+        JButton destockBtn = new JButton("Destock");
         JButton refreshBtn = new JButton("Refresh");
         JButton closeBtn = new JButton("Close");
 
         JPanel bottom = new JPanel();
         bottom.add(addBtn);
         bottom.add(restockBtn);
+        bottom.add(destockBtn);
         bottom.add(refreshBtn);
         bottom.add(closeBtn);
 
@@ -56,6 +58,15 @@ public class ManageProductsFrame extends JFrame {
             }
             int productId = (int) model.getValueAt(row, 0);
             new RestockFrame(productId, false);
+        });
+        destockBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Select a product.");
+                return;
+            }
+            int productId = (int) model.getValueAt(row, 0);
+            new RestockFrame(productId, true);   // ✅ destock modu
         });
 
         refreshBtn.addActionListener(e -> loadProducts());
