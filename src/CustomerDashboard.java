@@ -4,12 +4,13 @@ import java.awt.*;
 public class CustomerDashboard extends JFrame {
 
     public CustomerDashboard() {
-        setTitle("Customer Dashboard");
-        setSize(450, 340);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel(new GridLayout(6, 1, 8, 8));
+        setTitle("Customer Dashboard");
+        setSize(450, 320);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        JPanel panel = new JPanel(new GridLayout(5, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JLabel welcome = new JLabel(
@@ -18,33 +19,35 @@ public class CustomerDashboard extends JFrame {
         );
         welcome.setFont(new Font("Arial", Font.BOLD, 16));
 
-        JButton viewCatalogs = new JButton("View Catalogs");
-        JButton viewCart = new JButton("View Ongoing Order");
-        JButton history = new JButton("View Order History");
-        JButton stats = new JButton("Customer Statistics");
-        JButton logout = new JButton("Logout");
+        JButton browseBtn = new JButton("Browse Products");
+        JButton cartBtn   = new JButton("My Cart");      // 🔥 EKLENDİ
+        JButton ordersBtn = new JButton("My Orders");
+        JButton logoutBtn = new JButton("Logout");
 
-        // ===== ACTIONS =====
-        viewCatalogs.addActionListener(e -> new CatalogListFrame());
+        browseBtn.addActionListener(e ->
+                new CustomerProductListFrame()
+        );
 
-        viewCart.addActionListener(e -> new CartFrame());
+        // 🔥 CART = order_status = 'CART'
+        cartBtn.addActionListener(e ->
+                new CartFrame()   // aşağıda veriyorum
+        );
 
-        history.addActionListener(e -> new OrderHistoryFrame());
+        ordersBtn.addActionListener(e ->
+                new OrderHistoryFrame()
+        );
 
-        stats.addActionListener(e -> new CustomerStatsFrame());
-
-        logout.addActionListener(e -> {
+        logoutBtn.addActionListener(e -> {
             UserSession.clear();
             new HomeFrame();
             dispose();
         });
 
         panel.add(welcome);
-        panel.add(viewCatalogs);
-        panel.add(viewCart);
-        panel.add(history);
-        panel.add(stats);
-        panel.add(logout);
+        panel.add(browseBtn);
+        panel.add(cartBtn);
+        panel.add(ordersBtn);
+        panel.add(logoutBtn);
 
         add(panel);
         setVisible(true);

@@ -1,51 +1,111 @@
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CatalogService {
 
-    // Seller için catalog varsa döner, yoksa oluşturur
-    public static int getOrCreateCatalog(int sellerId) {
+    // Catalog var mı?
+    public static boolean hasCatalog(int sellerId) {
 
-        String find = """
-            SELECT CatalogID
-            FROM Catalog
+        String sql = "SELECT 1 FROM Catalog WHERE SellerID = ?";
+
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setInt(1, sellerId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Yoksa default catalog oluştur
+    public static void createCatalogIfNotExists(int sellerId) {
+
+        if (hasCatalog(sellerId)) return;
+
+        String sql = """
+            INSERT INTO Catalog (SellerID, catalog_name)
+            VALUES (?, 'My Catalog')
+        """;
+
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setInt(1, sellerId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Catalog adını güncelle
+    public static boolean updateCatalogName(int sellerId, String newName) {
+
+        String sql = """
+            UPDATE Catalog
+            SET catalog_name = ?
             WHERE SellerID = ?
         """;
 
-        String create = """
-            INSERT INTO Catalog (SellerID, catalog_name)
-            VALUES (?, 'Default Catalog')
-        """;
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
-        try (Connection c = DB.getConnection()) {
+            ps.setString(1, newName);
+            ps.setInt(2, sellerId);
+            return ps.executeUpdate() == 1;
 
-            // 1️⃣ VAR MI?
-            try (PreparedStatement ps = c.prepareStatement(find)) {
-                ps.setInt(1, sellerId);
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    return rs.getInt("CatalogID");
-                }
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
-            // 2️⃣ YOK → OLUŞTUR
-            try (PreparedStatement ps = c.prepareStatement(
-                    create, PreparedStatement.RETURN_GENERATED_KEYS)) {
+    // Seller catalog adı
+    public static String getCatalogName(int sellerId) {
 
-                ps.setInt(1, sellerId);
-                ps.executeUpdate();
+        String sql = "SELECT catalog_name FROM Catalog WHERE SellerID = ?";
 
-                ResultSet keys = ps.getGeneratedKeys();
-                if (keys.next()) {
-                    return keys.getInt(1);
-                }
-            }
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
-        } catch (Exception e) {
+            ps.setInt(1, sellerId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next())
+                return rs.getString("catalog_name");
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return -1;
+        return "My Catalog";
+    }
+
+    // CUSTOMER FILTER → ALL + cataloglar
+    public static String[] getCatalogNamesWithAll() {
+
+        List<String> list = new ArrayList<>();
+        list.add("ALL");
+
+        String sql = "SELECT catalog_name FROM Catalog ORDER BY catalog_name";
+
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString(1));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list.toArray(new String[0]);
     }
 }

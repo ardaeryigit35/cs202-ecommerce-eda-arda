@@ -11,20 +11,26 @@ public class CartFrame extends JFrame {
     private JButton submitBtn;
 
     public CartFrame() {
+
         setTitle("Your Shopping Cart");
         setSize(600, 380);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
+        // ===== TABLE MODEL =====
         model = new DefaultTableModel(
                 new Object[]{"ProductID", "Product", "Qty", "Price", "Total"}, 0
         ) {
-            public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         table = new JTable(model);
-        table.removeColumn(table.getColumnModel().getColumn(0));
+        table.removeColumn(table.getColumnModel().getColumn(0)); // hide ProductID
 
+        // ===== BUTTONS =====
         removeBtn = new JButton("Remove Selected Item");
         submitBtn = new JButton("Submit Order");
 
@@ -32,6 +38,7 @@ public class CartFrame extends JFrame {
         submitBtn.addActionListener(e -> handleSubmit());
 
         JPanel bottom = new JPanel(new GridLayout(1, 2, 10, 10));
+        bottom.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         bottom.add(removeBtn);
         bottom.add(submitBtn);
 
@@ -71,11 +78,11 @@ public class CartFrame extends JFrame {
     }
 
     // ============================
-    // SUBMIT ORDER (FIXED)
+    // SUBMIT ORDER
     // ============================
     private void handleSubmit() {
 
-        setButtons(false); // 🔴 EN KRİTİK FIX
+        setButtons(false);
 
         new SwingWorker<Boolean, Void>() {
 
@@ -102,7 +109,7 @@ public class CartFrame extends JFrame {
                             CartFrame.this,
                             "Order submitted successfully!"
                     );
-                    dispose(); // CART kapanır → lifecycle temiz
+                    dispose(); // CART kapanır
 
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(

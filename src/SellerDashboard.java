@@ -5,16 +5,17 @@ public class SellerDashboard extends JFrame {
 
     public SellerDashboard() {
 
-        // 🔥 CRITICAL FIX
-        // Seller ilk kez giriyorsa default catalog otomatik oluşturulur
-        CatalogService.getOrCreateCatalog(UserSession.getUserId());
+        int sellerId = UserSession.getUserId();
+
+        // 🔥 KRİTİK: Seller girince catalog otomatik oluşur
+        CatalogService.createCatalogIfNotExists(sellerId);
 
         setTitle("Seller Dashboard");
-        setSize(450, 320);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(450, 360);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(new GridLayout(6, 1, 8, 8));
+        JPanel panel = new JPanel(new GridLayout(7, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JLabel welcome = new JLabel(
@@ -23,36 +24,35 @@ public class SellerDashboard extends JFrame {
         );
         welcome.setFont(new Font("Arial", Font.BOLD, 16));
 
-        JButton manage = new JButton("Manage Catalog & Products");
-        JButton orders = new JButton("View Orders");
-        JButton stats = new JButton("Seller Statistics");
-        JButton reviews = new JButton("View Reviews");
-        JButton logout = new JButton("Logout");
+        JButton manageProductsBtn = new JButton("Manage Products");
+        JButton changeCatalogBtn = new JButton("Change Catalog Name"); // ✅ YENİ
+        JButton ordersBtn = new JButton("View Orders");
+        JButton statsBtn = new JButton("Seller Statistics");
+        JButton logoutBtn = new JButton("Logout");
 
-        // =====================
-        // ACTIONS
-        // =====================
+        // ▶ Manage Products
+        manageProductsBtn.addActionListener(e ->
+                new ManageProductsFrame(sellerId)
+        );
 
-        manage.addActionListener(e -> new ManageProductsFrame());
+        // ▶ Change Catalog Name
+        changeCatalogBtn.addActionListener(e ->
+                new ChangeCatalogNameFrame(sellerId)
+        );
 
-        orders.addActionListener(e -> new SellerOrdersFrame());
-
-        stats.addActionListener(e -> new SellerStatsFrame());
-
-        reviews.addActionListener(e -> new SellerReviewsFrame());
-
-        logout.addActionListener(e -> {
+        // ▶ Logout
+        logoutBtn.addActionListener(e -> {
             UserSession.clear();
             new HomeFrame();
             dispose();
         });
 
         panel.add(welcome);
-        panel.add(manage);
-        panel.add(orders);
-        panel.add(stats);
-        panel.add(reviews);
-        panel.add(logout);
+        panel.add(manageProductsBtn);
+        panel.add(changeCatalogBtn); // ✅ EKLENDİ
+        panel.add(ordersBtn);
+        panel.add(statsBtn);
+        panel.add(logoutBtn);
 
         add(panel);
         setVisible(true);

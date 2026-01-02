@@ -7,8 +7,12 @@ public class OrderHistoryFrame extends JFrame {
 
     private final DefaultTableModel model;
     private final JTable table;
+    private final int customerId;
 
-    public OrderHistoryFrame() {
+    // 🔥 ASIL CONSTRUCTOR (CustomerDashboard burayı çağırır)
+    public OrderHistoryFrame(int customerId) {
+        this.customerId = customerId;
+
         setTitle("My Orders");
         setSize(650, 400);
         setLocationRelativeTo(null);
@@ -48,15 +52,14 @@ public class OrderHistoryFrame extends JFrame {
 
             String status = model.getValueAt(row, 2).toString();
             if (!("SHIPPED".equals(status) || "DELIVERED".equals(status))) {
-                JOptionPane.showMessageDialog(this,
-                        "You can leave a review only for SHIPPED or DELIVERED orders.");
+                JOptionPane.showMessageDialog(
+                        this,
+                        "You can leave a review only for SHIPPED or DELIVERED orders."
+                );
                 return;
             }
 
-
             int orderId = (int) model.getValueAt(row, 0);
-
-            // 🔴 KRİTİK DEĞİŞİKLİK
             new OrderProductsFrame(orderId);
         });
 
@@ -65,11 +68,19 @@ public class OrderHistoryFrame extends JFrame {
         setVisible(true);
     }
 
+    // 🔧 GERİYE DÖNÜK UYUMLULUK (istersen silebilirsin)
+    public OrderHistoryFrame() {
+        this(UserSession.getUserId());
+    }
+
+    // ==========================
+    // LOAD ORDERS
+    // ==========================
     private void loadOrders() {
         model.setRowCount(0);
 
         List<OrderService.OrderItem> orders =
-                OrderService.getOrdersByCustomer(UserSession.getUserId());
+                OrderService.getOrdersByCustomer(customerId);
 
         for (OrderService.OrderItem o : orders) {
             model.addRow(new Object[]{

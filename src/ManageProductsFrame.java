@@ -5,13 +5,17 @@ import java.util.List;
 
 public class ManageProductsFrame extends JFrame {
 
-    private JTable table;
-    private DefaultTableModel model;
+    private final int sellerId;
+    private final DefaultTableModel model;
 
-    public ManageProductsFrame() {
+    public ManageProductsFrame(int sellerId) {
+
+        this.sellerId = sellerId;
+
+        SellerInventoryService.getOrCreateCatalog(sellerId);
 
         setTitle("Manage My Products");
-        setSize(800, 420);
+        setSize(820, 420);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -21,20 +25,17 @@ public class ManageProductsFrame extends JFrame {
             public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        table = new JTable(model);
+        JTable table = new JTable(model);
         JScrollPane scroll = new JScrollPane(table);
 
-        JButton restockBtn = new JButton("Restock Product");
-        JButton destockBtn = new JButton("Destock Product");
+        JButton addBtn = new JButton("Add Product");
+        JButton restockBtn = new JButton("Restock");
         JButton refreshBtn = new JButton("Refresh");
         JButton closeBtn = new JButton("Close");
 
         JPanel bottom = new JPanel();
+        bottom.add(addBtn);
         bottom.add(restockBtn);
-        bottom.add(refreshBtn);
-        bottom.add(closeBtn);
-        bottom.add(restockBtn);
-        bottom.add(destockBtn);
         bottom.add(refreshBtn);
         bottom.add(closeBtn);
 
@@ -43,27 +44,19 @@ public class ManageProductsFrame extends JFrame {
 
         loadProducts();
 
-        // 🔴 RESTOCK BUTONU İŞTE BURASI
+        addBtn.addActionListener(e ->
+                new AddProductFrame(sellerId)
+        );
+
         restockBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row == -1) {
                 JOptionPane.showMessageDialog(this, "Select a product.");
                 return;
             }
-
             int productId = (int) model.getValueAt(row, 0);
-            new RestockFrame(productId,false);
+            new RestockFrame(productId, false);
         });
-        destockBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Select a product.");
-                return;
-            }
-            int productId = (int) model.getValueAt(row, 0);
-            new RestockFrame(productId, true);   // ✅ destock modu
-        });
-
 
         refreshBtn.addActionListener(e -> loadProducts());
         closeBtn.addActionListener(e -> dispose());
@@ -75,7 +68,7 @@ public class ManageProductsFrame extends JFrame {
         model.setRowCount(0);
 
         List<ProductService.ProductItem> products =
-                ProductService.getProductsBySeller(UserSession.getUserId());
+                ProductService.getProductsBySeller(sellerId);
 
         for (ProductService.ProductItem p : products) {
             model.addRow(new Object[]{

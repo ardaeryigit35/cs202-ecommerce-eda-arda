@@ -1,13 +1,62 @@
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class SellerInventoryService {
 
+    // ============================
+    // GET OR CREATE CATALOG
+    // ============================
+    public static int getOrCreateCatalog(int sellerId) {
+
+        String checkSql = """
+            SELECT CatalogID
+            FROM Catalog
+            WHERE SellerID = ?
+        """;
+
+        String insertSql = """
+            INSERT INTO Catalog (SellerID, catalog_name)
+            VALUES (?, ?)
+        """;
+
+        try (Connection c = DB.getConnection()) {
+
+            // 1️⃣ Var mı bak
+            try (PreparedStatement ps = c.prepareStatement(checkSql)) {
+                ps.setInt(1, sellerId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    return rs.getInt("CatalogID");
+                }
+            }
+
+            // 2️⃣ Yoksa oluştur
+            try (PreparedStatement ps =
+                         c.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+
+                ps.setInt(1, sellerId);
+                ps.setString(2, "Catalog of Seller #" + sellerId);
+                ps.executeUpdate();
+
+                ResultSet keys = ps.getGeneratedKeys();
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    // ============================
+    // RESTOCK / DESTOCK
+    // ============================
     public static boolean restockProduct(
             int productId,
             int sellerId,
-            int addedQty,
+            int qty,
             String note
     ) {
 
@@ -26,7 +75,7 @@ public class SellerInventoryService {
             c.setAutoCommit(false);
 
             try (PreparedStatement ps1 = c.prepareStatement(updateStock)) {
-                ps1.setInt(1, addedQty);
+                ps1.setInt(1, qty);
                 ps1.setInt(2, productId);
                 ps1.setInt(3, sellerId);
                 ps1.executeUpdate();
@@ -35,7 +84,7 @@ public class SellerInventoryService {
             try (PreparedStatement ps2 = c.prepareStatement(insertHistory)) {
                 ps2.setInt(1, productId);
                 ps2.setInt(2, sellerId);
-                ps2.setInt(3, addedQty);
+                ps2.setInt(3, qty);
                 ps2.setString(4, note);
                 ps2.executeUpdate();
             }
