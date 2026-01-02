@@ -55,13 +55,22 @@ public class CustomerProductListFrame extends JFrame {
         table.removeColumn(table.getColumnModel().getColumn(5)); // SellerID
 
         JButton addBtn = new JButton("Add to Cart");
+        JButton detailsBtn = new JButton("See Reviews / Details");
+
 
         filterBtn.addActionListener(e -> loadProducts());
         addBtn.addActionListener(e -> addToCart());
+        detailsBtn.addActionListener(e -> openDetails());
+
 
         add(top, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(addBtn, BorderLayout.SOUTH);
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottom.add(detailsBtn);
+        bottom.add(addBtn);
+
+        add(bottom, BorderLayout.SOUTH);
+
 
         loadProducts();
         setVisible(true);
@@ -152,5 +161,16 @@ public class CustomerProductListFrame extends JFrame {
 
         JOptionPane.showMessageDialog(this, "Product added to cart.");
     }
+    private void openDetails() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a product.");
+            return;
+        }
+
+        int productId = (int) model.getValueAt(row, 0); // ID kolonu
+        new ProductDetailFrame(productId);
+    }
+
 
 }

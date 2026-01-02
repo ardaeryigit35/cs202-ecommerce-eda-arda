@@ -23,7 +23,7 @@ public class ReviewService {
               AND o.CustomerID = ?
               AND oi.ProductID = ?
               AND oi.SellerID = ?
-              AND o.order_status = IN ('SHIPPED','DELIVERED')
+              AND o.order_status IN ('SHIPPED','DELIVERED')
             LIMIT 1
         """;
 

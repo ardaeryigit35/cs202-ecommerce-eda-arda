@@ -32,12 +32,14 @@ public class SellerOrdersFrame extends JFrame {
 
         JButton confirmBtn = new JButton("Confirm (Mark as Paid)");
         JButton shipBtn = new JButton("Mark as Shipped");
+        JButton deliverBtn = new JButton("Mark as Delivered");
         JButton refreshBtn = new JButton("Refresh");
         JButton closeBtn = new JButton("Close");
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.add(confirmBtn);
         bottom.add(shipBtn);
+        bottom.add(deliverBtn);
         bottom.add(refreshBtn);
         bottom.add(closeBtn);
 
@@ -49,6 +51,7 @@ public class SellerOrdersFrame extends JFrame {
         confirmBtn.addActionListener(e -> confirmSelectedOrder());
         shipBtn.addActionListener(e -> shipSelectedOrder());
         refreshBtn.addActionListener(e -> loadOrders());
+        deliverBtn.addActionListener(e -> deliverSelectedOrder());
         closeBtn.addActionListener(e -> dispose());
 
         setVisible(true);
@@ -132,4 +135,28 @@ public class SellerOrdersFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Operation failed.");
         }
     }
+    private void deliverSelectedOrder() {
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select an order.");
+            return;
+        }
+
+        String status = model.getValueAt(row, 2).toString(); // status kolon indexin 2 ise
+        if (!"SHIPPED".equals(status)) {
+            JOptionPane.showMessageDialog(this, "Only SHIPPED orders can be delivered.");
+            return;
+        }
+
+        int orderId = (int) model.getValueAt(row, 0); // OrderID kolon indexin 0 ise
+
+        boolean ok = SellerOrderService.markAsDelivered(orderId, UserSession.getUserId());
+        if (ok) {
+            JOptionPane.showMessageDialog(this, "Order marked as DELIVERED.");
+            loadOrders();
+        } else {
+            JOptionPane.showMessageDialog(this, "Operation failed.");
+        }
+    }
+
 }

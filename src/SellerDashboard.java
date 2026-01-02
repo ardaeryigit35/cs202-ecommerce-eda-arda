@@ -27,6 +27,8 @@ public class SellerDashboard extends JFrame {
         JButton manageProductsBtn = new JButton("Manage Products");
         JButton changeCatalogBtn = new JButton("Change Catalog Name");
         JButton ordersBtn = new JButton("View Orders");
+        JButton reviewsBtn = new JButton("My Product Reviews");
+
 
         JButton statsBtn = new JButton("Seller Statistics");
 
@@ -46,6 +48,8 @@ public class SellerDashboard extends JFrame {
         ordersBtn.addActionListener(e ->
                 new SellerOrdersFrame(sellerId)
         );
+        reviewsBtn.addActionListener(e -> new SellerReviewsFrame());
+
         // ▶ Seller Statistics (FIX)
         statsBtn.addActionListener(e ->
                 new SellerStatsFrame()
@@ -62,6 +66,7 @@ public class SellerDashboard extends JFrame {
         panel.add(manageProductsBtn);
         panel.add(changeCatalogBtn);
         panel.add(ordersBtn);
+        panel.add(reviewsBtn);
         panel.add(statsBtn);
         panel.add(logoutBtn);
 

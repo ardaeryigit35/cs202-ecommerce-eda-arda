@@ -161,4 +161,28 @@ public class SellerOrderService {
             return false;
         }
     }
+    public static boolean markAsDelivered(int orderId, int sellerId) {
+
+        String sql = """
+        UPDATE OrderTable
+        SET order_status = 'DELIVERED'
+        WHERE OrderID = ?
+          AND SellerID = ?
+          AND order_status = 'SHIPPED'
+    """;
+
+        try (Connection conn = DB.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, orderId);
+            ps.setInt(2, sellerId);
+
+            return ps.executeUpdate() == 1;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
