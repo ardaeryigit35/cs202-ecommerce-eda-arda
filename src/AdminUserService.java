@@ -72,4 +72,82 @@ public class AdminUserService {
             return false;
         }
     }
+    // ========================
+// ADD USER (ADMIN)
+// ========================
+    public static boolean addUser(
+            String email,
+            String password,
+            String userName,
+            String role
+    ) {
+
+        // 🔒 ADMIN EKLENEMEZ
+        if (!role.equals("CUSTOMER") && !role.equals("SELLER"))
+            return false;
+
+        String insertUser =
+                "INSERT INTO User (email, password, UserName) VALUES (?, ?, ?)";
+        String insertRole =
+                "INSERT INTO UserRole (UserID, role) VALUES (?, ?)";
+
+        try (Connection c = DB.getConnection()) {
+            c.setAutoCommit(false);
+
+            int userId;
+
+            try (PreparedStatement ps =
+                         c.prepareStatement(insertUser, Statement.RETURN_GENERATED_KEYS)) {
+
+                ps.setString(1, email);
+                ps.setString(2, password);
+                ps.setString(3, userName);
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (!rs.next()) {
+                    c.rollback();
+                    return false;
+                }
+                userId = rs.getInt(1);
+            }
+
+            try (PreparedStatement ps2 = c.prepareStatement(insertRole)) {
+                ps2.setInt(1, userId);
+                ps2.setString(2, role);
+                ps2.executeUpdate();
+            }
+
+            c.commit();
+            return true;
+
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+
+    // ========================
+// UPDATE USER ROLE (ADMIN)
+// ========================
+    public static boolean updateUserRole(int userId, String newRole) {
+
+        if (!newRole.equals("CUSTOMER") && !newRole.equals("SELLER"))
+            return false; // ADMIN role değiştirilemez
+
+        String sql =
+                "UPDATE UserRole SET role = ? WHERE UserID = ? AND role <> 'ADMIN'";
+
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, newRole);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() == 1;
+
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
 }
