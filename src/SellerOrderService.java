@@ -32,8 +32,7 @@ public class SellerOrderService {
     // ========================
     public static List<SellerOrder> getOrdersForSeller(int sellerId) {
 
-        // 🔴 ÖNEMLİ: total artık OrderItems SUM değil
-        // ✅ OrderTable.total_amount kullanılıyor
+        // ✅ TOTAL SADECE OrderTable.total_amount
         String sql = """
             SELECT o.OrderID,
                    o.order_date,
@@ -106,7 +105,7 @@ public class SellerOrderService {
 
             double totalAmount;
 
-            // 1️⃣ doğru (indirimli) total al
+            // 1️⃣ total_amount al
             try (PreparedStatement ps = conn.prepareStatement(totalSql)) {
                 ps.setInt(1, orderId);
                 ps.setInt(2, sellerId);
@@ -120,7 +119,7 @@ public class SellerOrderService {
                 }
             }
 
-            // 2️⃣ order -> PAID
+            // 2️⃣ order → PAID
             int updated;
             try (PreparedStatement ps = conn.prepareStatement(updateOrder)) {
                 ps.setInt(1, orderId);
