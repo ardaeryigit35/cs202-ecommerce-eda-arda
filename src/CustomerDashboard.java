@@ -10,7 +10,7 @@ public class CustomerDashboard extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(new GridLayout(6, 1, 8, 8));
+        JPanel panel = new JPanel(new GridLayout(7, 1, 8, 8));
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JLabel welcome = new JLabel(
@@ -20,16 +20,17 @@ public class CustomerDashboard extends JFrame {
         welcome.setFont(new Font("Arial", Font.BOLD, 16));
 
         JButton browseBtn = new JButton("Browse Products");
-        JButton cartBtn   = new JButton("My Cart");      // 🔥 EKLENDİ
+        JButton cartBtn   = new JButton("My Cart");
         JButton ordersBtn = new JButton("My Orders");
         JButton statsBtn = new JButton("My Statistics");
+        JButton favoritesBtn = new JButton("Favorites");
         JButton logoutBtn = new JButton("Logout");
 
         browseBtn.addActionListener(e ->
                 new CustomerProductListFrame()
         );
 
-        // 🔥 CART = order_status = 'CART'
+
         cartBtn.addActionListener(e ->
                 new CartFrame()   // aşağıda veriyorum
         );
@@ -38,6 +39,7 @@ public class CustomerDashboard extends JFrame {
                 new OrderHistoryFrame()
         );
         statsBtn.addActionListener(e -> new CustomerStatsFrame());
+        favoritesBtn.addActionListener(e -> new CustomerFavoritesFrame(UserSession.getUserId()));
 
 
         logoutBtn.addActionListener(e -> {
@@ -51,6 +53,7 @@ public class CustomerDashboard extends JFrame {
         panel.add(cartBtn);
         panel.add(ordersBtn);
         panel.add(statsBtn);
+        panel.add(favoritesBtn);
         panel.add(logoutBtn);
 
         add(panel);

@@ -4,9 +4,7 @@ import java.util.List;
 
 public class AdminUserService {
 
-    // ========================
-    // DTO
-    // ========================
+
     public static class UserItem {
         public final int userId;
         public final String email;
@@ -21,9 +19,7 @@ public class AdminUserService {
         }
     }
 
-    // ========================
-    // GET ALL USERS
-    // ========================
+
     public static List<UserItem> getAllUsers() {
 
         String sql = """
@@ -55,9 +51,7 @@ public class AdminUserService {
         return list;
     }
 
-    // ========================
-    // ADD USER (ADMIN)
-    // ========================
+
     public static boolean addUser(
             String email,
             String password,
@@ -65,7 +59,7 @@ public class AdminUserService {
             String role
     ) {
 
-        // 🔒 ADMIN eklenemez (tek admin var)
+
         if (!role.equals("CUSTOMER") && !role.equals("SELLER")) {
             return false;
         }
@@ -81,7 +75,7 @@ public class AdminUserService {
 
             int userId;
 
-            // 1️⃣ User
+
             try (PreparedStatement ps =
                          c.prepareStatement(insertUser, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -98,7 +92,7 @@ public class AdminUserService {
                 userId = rs.getInt(1);
             }
 
-            // 2️⃣ Role
+
             try (PreparedStatement ps =
                          c.prepareStatement(insertRole)) {
 
@@ -116,13 +110,10 @@ public class AdminUserService {
         }
     }
 
-    // ========================
-    // UPDATE USER ROLE
-    // ========================
     public static boolean updateUserRole(int userId, String newRole) {
 
         if (!newRole.equals("CUSTOMER") && !newRole.equals("SELLER"))
-            return false; // ADMIN yapılamaz
+            return false;
 
         String sql = """
             UPDATE UserRole
@@ -144,9 +135,6 @@ public class AdminUserService {
         }
     }
 
-    // ========================
-    // DELETE USER (FULL FIX)
-    // ========================
     public static boolean deleteUser(int userId) {
 
         String checkAdmin = """
@@ -174,7 +162,7 @@ public class AdminUserService {
         try (Connection c = DB.getConnection()) {
             c.setAutoCommit(false);
 
-            // 🔒 ADMIN silinemez
+
             try (PreparedStatement ps = c.prepareStatement(checkAdmin)) {
                 ps.setInt(1, userId);
                 ResultSet rs = ps.executeQuery();
@@ -183,7 +171,6 @@ public class AdminUserService {
                 }
             }
 
-            // 🔒 Siparişi olan user silinemez
             try (PreparedStatement ps = c.prepareStatement(checkOrders)) {
                 ps.setInt(1, userId);
                 ps.setInt(2, userId);
@@ -193,7 +180,7 @@ public class AdminUserService {
                 }
             }
 
-            // 🧹 SELLER cleanup
+
             try (PreparedStatement ps = c.prepareStatement(deleteProducts)) {
                 ps.setInt(1, userId);
                 ps.executeUpdate();
@@ -210,7 +197,7 @@ public class AdminUserService {
                 ps.executeUpdate();
             }
 
-            // 🧹 User
+
             try (PreparedStatement ps = c.prepareStatement(deleteUser)) {
                 ps.setInt(1, userId);
                 ps.executeUpdate();

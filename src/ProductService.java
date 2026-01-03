@@ -4,9 +4,7 @@ import java.util.List;
 
 public class ProductService {
 
-    // =======================
-    // DTO (COMMON)
-    // =======================
+
     public static class ProductItem {
         public final int productId;
         public final String productName;
@@ -34,9 +32,7 @@ public class ProductService {
         }
     }
 
-    // =======================
-    // DTO (ADMIN)
-    // =======================
+
     public static class AdminProductItem {
         public final int productId;
         public final String productName;
@@ -61,9 +57,7 @@ public class ProductService {
         }
     }
 
-    // =======================
-    // ADD PRODUCT (SELLER)
-    // =======================
+
     public static boolean addProduct(
             int sellerId,
             String name,
@@ -99,9 +93,7 @@ public class ProductService {
         }
     }
 
-    // =======================
-    // SELLER VIEW (WITH CATALOG)
-    // =======================
+
     public static List<ProductItem> getProductsBySeller(int sellerId) {
 
         List<ProductItem> list = new ArrayList<>();
@@ -146,9 +138,7 @@ public class ProductService {
         return list;
     }
 
-    // =======================
-    // CUSTOMER SEARCH + FILTER (ALL CATALOGS)
-    // =======================
+
     public static List<ProductItem> searchProducts(
             String keyword,
             String category,
@@ -231,9 +221,7 @@ public class ProductService {
         return list;
     }
 
-    // =======================
-    // ADMIN VIEW
-    // =======================
+
     public static List<AdminProductItem> getAllProductsForAdmin() {
 
         List<AdminProductItem> list = new ArrayList<>();

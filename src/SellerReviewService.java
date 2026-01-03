@@ -4,9 +4,7 @@ import java.util.List;
 
 public class SellerReviewService {
 
-    // ========================
-    // DTO
-    // ========================
+
     public static class ReviewItem {
         public final String productName;
         public final String customerName;
@@ -27,9 +25,6 @@ public class SellerReviewService {
         }
     }
 
-    // ========================
-    // GET REVIEWS FOR SELLER
-    // ========================
     public static List<ReviewItem> getReviewsForSeller(int sellerId) {
 
         String sql = """

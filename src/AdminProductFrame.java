@@ -44,9 +44,7 @@ public class AdminProductFrame extends JFrame {
         setVisible(true);
     }
 
-    // ===============================
-    // LOAD ALL PRODUCTS (ADMIN)
-    // ===============================
+
     private void loadProducts() {
 
         model.setRowCount(0);

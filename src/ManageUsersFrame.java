@@ -44,7 +44,7 @@ public class ManageUsersFrame extends JFrame {
 
         loadUsers();
 
-        // ================= ACTIONS =================
+
 
         refreshBtn.addActionListener(e -> loadUsers());
 
@@ -57,7 +57,6 @@ public class ManageUsersFrame extends JFrame {
         setVisible(true);
     }
 
-    // ================= LOAD USERS =================
     private void loadUsers() {
         model.setRowCount(0);
         for (AdminUserService.UserItem u : AdminUserService.getAllUsers()) {
@@ -70,7 +69,6 @@ public class ManageUsersFrame extends JFrame {
         }
     }
 
-    // ================= DELETE USER =================
     private void deleteSelectedUser() {
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -117,7 +115,6 @@ public class ManageUsersFrame extends JFrame {
         }
     }
 
-    // ================= ADD USER DIALOG =================
     private void openAddUserDialog() {
 
         JTextField email = new JTextField();

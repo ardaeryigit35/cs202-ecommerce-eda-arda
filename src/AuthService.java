@@ -16,7 +16,6 @@ public class AuthService {
         }
     }
 
-    // LOGIN
     public static SessionData login(String email, String password) {
 
         String sql = """
@@ -49,7 +48,7 @@ public class AuthService {
         }
     }
 
-    // REGISTER (CUSTOMER / SELLER only)
+
     public static String register(String email, String password, String userName, String role) {
 
         if (!role.equals("CUSTOMER") && !role.equals("SELLER"))
@@ -90,12 +89,10 @@ public class AuthService {
 
         } catch (SQLException e) {
 
-            // ✅ SADECE email unique ise
             if (e.getErrorCode() == 1062) {
                 return "Email already exists.";
             }
 
-            // ❗ Diğer tüm hatalar
             e.printStackTrace();
             return "Unexpected database error.";
         }

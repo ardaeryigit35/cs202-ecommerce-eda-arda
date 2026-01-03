@@ -45,7 +45,7 @@ public class ProductListFrame extends JFrame {
         top.add(maxPriceField);
         top.add(filterBtn);
 
-        // ================= TABLE =================
+
         model = new DefaultTableModel(
                 new Object[]{"ID", "Product", "Category", "Catalog", "Price", "Stock"}, 0
         ) {
@@ -70,7 +70,6 @@ public class ProductListFrame extends JFrame {
         setVisible(true);
     }
 
-    // ================= LOAD PRODUCTS =================
     private void loadProducts() {
 
         String keyword = searchField.getText();
@@ -100,7 +99,6 @@ public class ProductListFrame extends JFrame {
         }
     }
 
-    // ================= ADD TO CART =================
     private void addToCart() {
 
         int row = table.getSelectedRow();
@@ -118,6 +116,5 @@ public class ProductListFrame extends JFrame {
         }
 
         JOptionPane.showMessageDialog(this, "Product added to cart.");
-        // CartService.addToCart(...) burada çağrılır
     }
 }

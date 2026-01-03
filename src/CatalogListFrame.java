@@ -16,13 +16,13 @@ public class CatalogListFrame extends JFrame {
         DefaultListModel<String> model = new DefaultListModel<>();
         JList<String> list = new JList<>(model);
 
-        // örnek doldurma (istersen servisle bağla)
+
         model.addElement("All catalogs");
 
         JButton openBtn = new JButton("Open Products");
 
         openBtn.addActionListener(e -> {
-            // 🔥 ARTIK PARAMETRESİZ
+
             new CustomerProductListFrame();
         });
 

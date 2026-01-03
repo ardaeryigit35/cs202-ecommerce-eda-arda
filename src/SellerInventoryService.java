@@ -2,9 +2,7 @@ import java.sql.*;
 
 public class SellerInventoryService {
 
-    // ============================
-    // GET OR CREATE CATALOG
-    // ============================
+
     public static int getOrCreateCatalog(int sellerId) {
 
         String checkSql = """
@@ -20,7 +18,6 @@ public class SellerInventoryService {
 
         try (Connection c = DB.getConnection()) {
 
-            // 1️⃣ Var mı bak
             try (PreparedStatement ps = c.prepareStatement(checkSql)) {
                 ps.setInt(1, sellerId);
                 ResultSet rs = ps.executeQuery();
@@ -29,7 +26,7 @@ public class SellerInventoryService {
                 }
             }
 
-            // 2️⃣ Yoksa oluştur
+
             try (PreparedStatement ps =
                          c.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -50,9 +47,6 @@ public class SellerInventoryService {
         return -1;
     }
 
-    // ============================
-    // RESTOCK / DESTOCK
-    // ============================
     public static boolean restockProduct(
             int productId,
             int sellerId,

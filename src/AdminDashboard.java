@@ -11,7 +11,6 @@ public class AdminDashboard extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // ===== TOP =====
         JLabel title = new JLabel(
                 "Welcome Admin: " + UserSession.getUserName(),
                 SwingConstants.CENTER
@@ -20,7 +19,6 @@ public class AdminDashboard extends JFrame {
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(title, BorderLayout.NORTH);
 
-        // ===== CENTER BUTTONS =====
         JPanel centerPanel = new JPanel(new GridLayout(6, 1, 10, 10));
         centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
 
@@ -40,7 +38,7 @@ public class AdminDashboard extends JFrame {
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // ===== ACTIONS =====
+
         usersBtn.addActionListener(e -> new ManageUsersFrame());
 
         categoriesBtn.addActionListener(e -> new ManageCategoriesFrame());

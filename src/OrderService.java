@@ -4,9 +4,7 @@ import java.util.List;
 
 public class OrderService {
 
-    // ========================
-    // ORDER LIST DTO (CUSTOMER)
-    // ========================
+
     public static class OrderItem {
         public final int orderId;
         public final Timestamp orderDate;
@@ -22,9 +20,6 @@ public class OrderService {
         }
     }
 
-    // ========================
-    // ORDER PRODUCT DTO
-    // ========================
     public static class OrderProduct {
         public final int productId;
         public final String productName;
@@ -37,9 +32,6 @@ public class OrderService {
         }
     }
 
-    // ========================
-    // GET CUSTOMER ORDERS ✅ (FIXED)
-    // ========================
     public static List<OrderItem> getOrdersByCustomer(int customerId) {
 
         String sql = """
@@ -78,9 +70,7 @@ public class OrderService {
         return list;
     }
 
-    // ========================
-    // GET PRODUCTS OF AN ORDER
-    // ========================
+
     public static List<OrderProduct> getProductsByOrder(int orderId) {
 
         String sql = """
@@ -118,9 +108,7 @@ public class OrderService {
         return list;
     }
 
-    // ========================
-    // SELLER DTO
-    // ========================
+
     public static class SellerOrderItem {
         public final int orderId;
         public final String customerName;
@@ -141,9 +129,7 @@ public class OrderService {
         }
     }
 
-    // ========================
-    // GET ORDERS BY SELLER ✅ (FIXED)
-    // ========================
+
     public static List<SellerOrderItem> getOrdersBySeller(int sellerId) {
 
         List<SellerOrderItem> list = new ArrayList<>();

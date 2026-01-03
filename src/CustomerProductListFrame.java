@@ -56,17 +56,22 @@ public class CustomerProductListFrame extends JFrame {
 
         JButton addBtn = new JButton("Add to Cart");
         JButton detailsBtn = new JButton("See Reviews / Details");
+        JButton favBtn = new JButton("Add to Favorites");
+
 
 
         filterBtn.addActionListener(e -> loadProducts());
         addBtn.addActionListener(e -> addToCart());
         detailsBtn.addActionListener(e -> openDetails());
+        favBtn.addActionListener(e -> addToFavorites());
+
 
 
         add(top, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.add(detailsBtn);
+        bottom.add(favBtn);
         bottom.add(addBtn);
 
         add(bottom, BorderLayout.SOUTH);
@@ -116,7 +121,7 @@ public class CustomerProductListFrame extends JFrame {
 
         int productId = (int) model.getValueAt(row, 0);
 
-        // ✅ FIX: Double / Integer / Long güvenli okuma
+
         Number stockVal = (Number) model.getValueAt(row, 5);
         int stock = stockVal.intValue();
 
@@ -125,8 +130,6 @@ public class CustomerProductListFrame extends JFrame {
             return;
         }
 
-        // 🔥 SELLER ID'Yİ BULMAMIZ LAZIM
-        // çözüm: ürünü ProductService üzerinden çekiyoruz
         ProductService.ProductItem selected =
                 ProductService.searchProducts(
                                 null,
@@ -171,6 +174,26 @@ public class CustomerProductListFrame extends JFrame {
         int productId = (int) model.getValueAt(row, 0); // ID kolonu
         new ProductDetailFrame(productId);
     }
+    private void addToFavorites() {
+
+        int row = table.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Select a product.");
+            return;
+        }
+
+        int productId = (int) model.getValueAt(row, 0);
+        int sellerId  = (int) model.getValueAt(row, 6);
+
+        boolean ok = FavoriteService.addFavorite(
+                UserSession.getUserId(),
+                productId,
+                sellerId
+        );
+
+        JOptionPane.showMessageDialog(this, ok ? "Added to favorites." : "Add failed.");
+    }
+
 
 
 }

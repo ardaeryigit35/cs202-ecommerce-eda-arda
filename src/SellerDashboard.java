@@ -7,7 +7,6 @@ public class SellerDashboard extends JFrame {
 
         int sellerId = UserSession.getUserId();
 
-        // 🔥 Seller girince catalog otomatik oluşur
         CatalogService.createCatalogIfNotExists(sellerId);
 
         setTitle("Seller Dashboard");
@@ -40,24 +39,21 @@ public class SellerDashboard extends JFrame {
                 new ManageProductsFrame(sellerId)
         );
 
-        // ▶ Change Catalog Name
         changeCatalogBtn.addActionListener(e ->
                 new ChangeCatalogNameFrame(sellerId)
         );
         discountBtn.addActionListener(e -> new SellerDiscountFrame());
 
-        // ✅ FIX: View Orders artık ÇALIŞIYOR
+
         ordersBtn.addActionListener(e ->
                 new SellerOrdersFrame(sellerId)
         );
         reviewsBtn.addActionListener(e -> new SellerReviewsFrame());
 
-        // ▶ Seller Statistics (FIX)
         statsBtn.addActionListener(e ->
                 new SellerStatsFrame()
         );
 
-        // ▶ Logout
         logoutBtn.addActionListener(e -> {
             UserSession.clear();
             new HomeFrame();

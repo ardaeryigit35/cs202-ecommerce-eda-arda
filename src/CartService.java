@@ -4,9 +4,6 @@ import java.util.List;
 
 public class CartService {
 
-    // ========================
-    // DTOs
-    // ========================
     public static class CartItem {
         public final int productId;
         public final String productName;
@@ -37,9 +34,7 @@ public class CartService {
         }
     }
 
-    // ========================
-    // GET OR CREATE CART
-    // ========================
+
     private static int getOrCreateCart(Connection conn,
                                        int customerId,
                                        int sellerId) throws SQLException {
@@ -62,6 +57,7 @@ public class CartService {
             }
         }
 
+
         String create = """
             INSERT INTO OrderTable (CustomerID, SellerID, order_status)
             VALUES (?, ?, 'CART')
@@ -80,9 +76,6 @@ public class CartService {
         }
     }
 
-    // ========================
-    // ADD TO CART
-    // ========================
     public static boolean addToCart(int customerId,
                                     int sellerId,
                                     int productId,
@@ -101,6 +94,12 @@ public class CartService {
             (OrderID, ProductID, SellerID, quantity, unit_price)
             VALUES (?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)
+        """;
+
+        String discount_percent_getter = """
+            SELECT discount_percent
+            FROM discountcode
+            
         """;
 
         try (Connection conn = DB.getConnection()) {
@@ -152,9 +151,7 @@ public class CartService {
         }
     }
 
-    // ========================
-    // GET CART ITEMS
-    // ========================
+
     public static List<CartItem> getCartItems(int customerId) {
 
         String sql = """
@@ -197,9 +194,7 @@ public class CartService {
         return list;
     }
 
-    // ========================
-    // REMOVE ITEM
-    // ========================
+
     public static void removeItem(int customerId, int productId) {
 
         String sql = """
@@ -223,9 +218,7 @@ public class CartService {
         }
     }
 
-    // ========================
-    // VALIDATE DISCOUNT
-    // ========================
+
     public static DiscountResult validateDiscountCode(int customerId, String code) {
 
         String findSeller = """
@@ -242,7 +235,7 @@ public class CartService {
             WHERE SellerID = ?
               AND code = ?
               AND is_active = TRUE
-              AND usage_left > 0
+              AND usage_left > -1
         """;
 
         try (Connection c = DB.getConnection()) {
@@ -275,9 +268,7 @@ public class CartService {
         }
     }
 
-    // ========================
-    // SUBMIT ORDER (FINAL & SINGLE)
-    // ========================
+
     public static boolean submitOrder(int customerId, Integer discountId) {
 
         String findCart = """
@@ -307,7 +298,7 @@ public class CartService {
         FROM DiscountCode
         WHERE DiscountID = ?
           AND is_active = TRUE
-          AND usage_left > 0
+          AND usage_left > -1
     """;
 
         String updateOrderDiscount = """
@@ -320,7 +311,7 @@ public class CartService {
         UPDATE DiscountCode
         SET usage_left = usage_left - 1
         WHERE DiscountID = ?
-          AND usage_left > 0
+          AND usage_left > -1
     """;
 
         String updateTotal = """
@@ -341,7 +332,7 @@ public class CartService {
             int orderId;
             double total = 0.0;
 
-            // 1️⃣ CART BUL
+
             try (PreparedStatement ps = conn.prepareStatement(findCart)) {
                 ps.setInt(1, customerId);
                 ResultSet rs = ps.executeQuery();
@@ -353,7 +344,7 @@ public class CartService {
                 orderId = rs.getInt("OrderID");
             }
 
-            // 2️⃣ STOCK DÜŞ + TOTAL HESAPLA
+
             try (PreparedStatement ps = conn.prepareStatement(itemsSql)) {
                 ps.setInt(1, orderId);
                 ResultSet rs = ps.executeQuery();
@@ -380,7 +371,6 @@ public class CartService {
                 }
             }
 
-            // 3️⃣ DISCOUNT UYGULA
             if (discountId != null) {
                 try (PreparedStatement ps = conn.prepareStatement(getDiscountPercent)) {
                     ps.setInt(1, discountId);
@@ -396,7 +386,6 @@ public class CartService {
                 }
             }
 
-            // 4️⃣ ORDER → DISCOUNTID YAZ
             try (PreparedStatement ps = conn.prepareStatement(updateOrderDiscount)) {
                 if (discountId == null)
                     ps.setNull(1, Types.INTEGER);
@@ -407,7 +396,6 @@ public class CartService {
                 ps.executeUpdate();
             }
 
-            // 5️⃣ DISCOUNT USAGE DÜŞ
             if (discountId != null) {
                 try (PreparedStatement ps = conn.prepareStatement(decrementUsage)) {
                     ps.setInt(1, discountId);
@@ -415,17 +403,17 @@ public class CartService {
                         conn.rollback();
                         return false;
                     }
+
                 }
             }
 
-            // 6️⃣ TOTAL_AMOUNT YAZ ⭐
             try (PreparedStatement ps = conn.prepareStatement(updateTotal)) {
                 ps.setDouble(1, total);
                 ps.setInt(2, orderId);
                 ps.executeUpdate();
             }
 
-            // 7️⃣ ORDER SUBMIT
+
             try (PreparedStatement ps = conn.prepareStatement(submitOrder)) {
                 ps.setInt(1, orderId);
                 ps.executeUpdate();
@@ -439,6 +427,21 @@ public class CartService {
             return false;
         }
     }
+    public static Integer getSellerIdByProductId(int productId) {
+        String sql = "SELECT SellerID FROM Product WHERE ProductID = ? LIMIT 1";
+        try (Connection c = DB.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 
 }

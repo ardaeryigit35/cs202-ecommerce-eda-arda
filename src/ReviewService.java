@@ -35,7 +35,7 @@ public class ReviewService {
 
         try (Connection c = DB.getConnection()) {
 
-            // 🔒 VALIDATION
+
             try (PreparedStatement check = c.prepareStatement(checkSql)) {
                 check.setInt(1, orderId);
                 check.setInt(2, customerId);
@@ -54,7 +54,7 @@ public class ReviewService {
                 }
             }
 
-            // ✅ INSERT REVIEW
+
             try (PreparedStatement ps = c.prepareStatement(insertSql)) {
                 ps.setInt(1, orderId);
                 ps.setInt(2, productId);

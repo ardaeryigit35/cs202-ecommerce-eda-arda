@@ -17,9 +17,7 @@ public class ProductDetailFrame extends JFrame {
 
         setLayout(new BorderLayout(10, 10));
 
-        // ======================
-        // TOP: PRODUCT INFO
-        // ======================
+
         ProductDetailService.ProductDetail p =
                 ProductDetailService.getProductDetail(productId);
 
@@ -36,9 +34,7 @@ public class ProductDetailFrame extends JFrame {
 
         add(new JScrollPane(infoArea), BorderLayout.NORTH);
 
-        // ======================
-        // CENTER: REVIEWS
-        // ======================
+
         DefaultTableModel model = new DefaultTableModel(
                 new Object[]{"Customer", "Rating", "Comment", "Date"}, 0
         ) {
@@ -64,9 +60,6 @@ public class ProductDetailFrame extends JFrame {
 
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // ======================
-        // BOTTOM
-        // ======================
         JLabel avgLabel = new JLabel(
                 "Average Rating: " +
                         ProductDetailService.getAverageRating(productId)

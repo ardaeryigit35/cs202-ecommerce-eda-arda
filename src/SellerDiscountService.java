@@ -17,7 +17,7 @@ public class SellerDiscountService {
         String sql = """
             INSERT INTO DiscountCode
             (SellerID, code, discount_percent, usage_limit, usage_left)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?*2)
         """;
 
         try (Connection c = DB.getConnection();
@@ -33,7 +33,7 @@ public class SellerDiscountService {
             return true;
 
         } catch (SQLException e) {
-            // 🔥 asıl hata burada yazacak
+
             System.out.println("createDiscount ERROR: " + e.getMessage());
             e.printStackTrace();
             return false;

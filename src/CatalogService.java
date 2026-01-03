@@ -86,7 +86,7 @@ public class CatalogService {
         return "My Catalog";
     }
 
-    // CUSTOMER FILTER → ALL + cataloglar
+
     public static String[] getCatalogNamesWithAll() {
 
         List<String> list = new ArrayList<>();

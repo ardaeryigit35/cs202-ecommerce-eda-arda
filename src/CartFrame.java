@@ -10,9 +10,6 @@ public class CartFrame extends JFrame {
     private JButton removeBtn;
     private JButton submitBtn;
 
-    // =========================
-    // DISCOUNT STATE
-    // =========================
     private JTextField discountField;
     private JLabel discountInfo;
     private Integer appliedDiscountId = null;
@@ -25,9 +22,7 @@ public class CartFrame extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // =========================
-        // TABLE MODEL
-        // =========================
+
         model = new DefaultTableModel(
                 new Object[]{"ProductID", "Product", "Qty", "Price", "Total"}, 0
         ) {
@@ -40,9 +35,7 @@ public class CartFrame extends JFrame {
         table = new JTable(model);
         table.removeColumn(table.getColumnModel().getColumn(0)); // hide ProductID
 
-        // =========================
-        // DISCOUNT PANEL
-        // =========================
+
         JPanel discountPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         discountField = new JTextField(10);
@@ -60,33 +53,28 @@ public class CartFrame extends JFrame {
         removeBtn = new JButton("Remove Selected Item");
         submitBtn = new JButton("Submit Order");
 
+
+
         removeBtn.addActionListener(e -> handleRemove());
         submitBtn.addActionListener(e -> handleSubmit());
 
-        JPanel bottom = new JPanel(new GridLayout(1, 2, 10, 10));
+        JPanel bottom = new JPanel(new GridLayout(1, 3, 10, 10));
         bottom.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         bottom.add(removeBtn);
         bottom.add(submitBtn);
 
-        // =========================
-        // LAYOUT
-        // =========================
         add(discountPanel, BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
 
-        // =========================
-        // APPLY DISCOUNT ACTION
-        // =========================
+
         applyBtn.addActionListener(e -> applyDiscount());
 
         reloadCart();
         setVisible(true);
     }
 
-    // =========================
-    // APPLY DISCOUNT
-    // =========================
+
     private void applyDiscount() {
 
         String code = discountField.getText().trim();
@@ -102,7 +90,7 @@ public class CartFrame extends JFrame {
                 );
 
         if (res == null) {
-            discountInfo.setText("❌ Invalid or expired code");
+            discountInfo.setText(" Invalid or expired code");
             appliedDiscountId = null;
             appliedPercent = 0;
             recalculateTotals();
@@ -112,13 +100,11 @@ public class CartFrame extends JFrame {
         appliedDiscountId = res.discountId;
         appliedPercent = res.percent;
 
-        discountInfo.setText("✅ Discount applied: %" + appliedPercent);
+        discountInfo.setText("Discount applied: %" + appliedPercent);
         recalculateTotals();
     }
 
-    // =========================
-    // RECALCULATE TOTALS (UI)
-    // =========================
+
     private void recalculateTotals() {
 
         for (int i = 0; i < model.getRowCount(); i++) {
@@ -135,9 +121,7 @@ public class CartFrame extends JFrame {
         }
     }
 
-    // =========================
-    // REMOVE ITEM
-    // =========================
+
     private void handleRemove() {
 
         int row = table.getSelectedRow();
@@ -166,9 +150,7 @@ public class CartFrame extends JFrame {
         }.execute();
     }
 
-    // =========================
-    // SUBMIT ORDER (DISCOUNT INCLUDED)
-    // =========================
+
     private void handleSubmit() {
 
         setButtons(false);
@@ -215,9 +197,7 @@ public class CartFrame extends JFrame {
         }.execute();
     }
 
-    // =========================
-    // LOAD CART
-    // =========================
+
     private void reloadCart() {
 
         new SwingWorker<List<CartService.CartItem>, Void>() {
@@ -250,7 +230,6 @@ public class CartFrame extends JFrame {
                         });
                     }
 
-                    // discount varsa tekrar uygula
                     recalculateTotals();
 
                     setButtons(true);
@@ -266,6 +245,8 @@ public class CartFrame extends JFrame {
             }
         }.execute();
     }
+
+
 
     private void setButtons(boolean enabled) {
         removeBtn.setEnabled(enabled);

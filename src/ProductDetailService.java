@@ -4,9 +4,7 @@ import java.util.List;
 
 public class ProductDetailService {
 
-    // ======================
-    // DTOs
-    // ======================
+
     public static class ProductDetail {
         public final String productName;
         public final String category;
@@ -39,9 +37,7 @@ public class ProductDetailService {
         }
     }
 
-    // ======================
-    // PRODUCT DETAIL
-    // ======================
+
     public static ProductDetail getProductDetail(int productId) {
 
         String sql = """
@@ -78,9 +74,7 @@ public class ProductDetailService {
         return null;
     }
 
-    // ======================
-    // REVIEWS
-    // ======================
+
     public static List<ReviewItem> getReviewsForProduct(int productId) {
 
         String sql = """
@@ -118,9 +112,7 @@ public class ProductDetailService {
         return list;
     }
 
-    // ======================
-    // AVERAGE RATING
-    // ======================
+
     public static double getAverageRating(int productId) {
 
         String sql = """

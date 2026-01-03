@@ -4,9 +4,7 @@ import java.util.List;
 
 public class AdminCategoryService {
 
-    // ========================
-    // DTO
-    // ========================
+
     public static class CategoryItem {
         public final int categoryId;
         public final String name;
@@ -17,9 +15,7 @@ public class AdminCategoryService {
         }
     }
 
-    // ========================
-    // GET ALL CATEGORIES
-    // ========================
+
     public static List<CategoryItem> getCategories() {
 
         String sql = "SELECT CategoryID, category_name FROM Category ORDER BY category_name";
@@ -44,9 +40,6 @@ public class AdminCategoryService {
         return list;
     }
 
-    // ========================
-    // ADD CATEGORY
-    // ========================
     public static boolean addCategory(String name) {
 
         String sql = "INSERT INTO Category (category_name) VALUES (?)";
@@ -63,9 +56,7 @@ public class AdminCategoryService {
         }
     }
 
-    // ========================
-    // DELETE CATEGORY
-    // ========================
+
     public static boolean deleteCategory(int categoryId) {
 
         String sql = "DELETE FROM Category WHERE CategoryID = ?";

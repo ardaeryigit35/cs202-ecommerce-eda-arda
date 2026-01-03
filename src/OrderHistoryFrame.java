@@ -9,7 +9,7 @@ public class OrderHistoryFrame extends JFrame {
     private final JTable table;
     private final int customerId;
 
-    // 🔥 ASIL CONSTRUCTOR (CustomerDashboard burayı çağırır)
+
     public OrderHistoryFrame(int customerId) {
         this.customerId = customerId;
 
@@ -42,7 +42,7 @@ public class OrderHistoryFrame extends JFrame {
 
         loadOrders();
 
-        // ✅ REVIEW FLOW (ORDER → PRODUCTS → REVIEW)
+
         reviewBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row == -1) {
@@ -68,14 +68,11 @@ public class OrderHistoryFrame extends JFrame {
         setVisible(true);
     }
 
-    // 🔧 GERİYE DÖNÜK UYUMLULUK (istersen silebilirsin)
     public OrderHistoryFrame() {
         this(UserSession.getUserId());
     }
 
-    // ==========================
-    // LOAD ORDERS
-    // ==========================
+
     private void loadOrders() {
         model.setRowCount(0);
 

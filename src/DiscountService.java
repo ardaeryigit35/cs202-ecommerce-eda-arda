@@ -13,7 +13,7 @@ public class DiscountService {
         String sql = """
             INSERT INTO DiscountCode
             (SellerID, code, discount_percent, usage_limit, usage_left)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?*2)
         """;
 
         try (Connection c = DB.getConnection();

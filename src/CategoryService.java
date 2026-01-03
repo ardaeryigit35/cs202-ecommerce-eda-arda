@@ -4,10 +4,7 @@ import java.util.List;
 
 public class CategoryService {
 
-    // =========================
-    // GET CATEGORY NAMES
-    // (SELLER / ADMIN / ADD PRODUCT)
-    // =========================
+
     public static String[] getCategoryNames() {
 
         List<String> list = new ArrayList<>();
@@ -29,10 +26,6 @@ public class CategoryService {
         return list.toArray(new String[0]);
     }
 
-    // =========================
-    // GET CATEGORY NAMES + ALL
-    // (CUSTOMER FILTER)
-    // =========================
     public static String[] getCategoryNamesWithAll() {
 
         List<String> list = new ArrayList<>();
@@ -55,10 +48,7 @@ public class CategoryService {
         return list.toArray(new String[0]);
     }
 
-    // =========================
-    // GET CATALOG NAMES + ALL
-    // (CUSTOMER FILTER)
-    // =========================
+
     public static String[] getCatalogNamesWithAll() {
 
         List<String> list = new ArrayList<>();
@@ -81,9 +71,7 @@ public class CategoryService {
         return list.toArray(new String[0]);
     }
 
-    // =========================
-    // GET CATEGORY ID BY NAME
-    // =========================
+
     public static int getCategoryIdByName(String name) {
 
         String sql = "SELECT CategoryID FROM Category WHERE category_name = ?";
