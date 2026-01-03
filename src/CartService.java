@@ -302,7 +302,15 @@ public class CartService {
           AND stock_qty >= ?
     """;
 
-        String updateDiscount = """
+        String getDiscountPercent = """
+        SELECT discount_percent
+        FROM DiscountCode
+        WHERE DiscountID = ?
+          AND is_active = TRUE
+          AND usage_left > 0
+    """;
+
+        String updateOrderDiscount = """
         UPDATE OrderTable
         SET DiscountID = ?
         WHERE OrderID = ?
@@ -321,7 +329,7 @@ public class CartService {
         WHERE OrderID = ?
     """;
 
-        String updateOrder = """
+        String submitOrder = """
         UPDATE OrderTable
         SET order_status = 'PENDING'
         WHERE OrderID = ?
@@ -331,12 +339,13 @@ public class CartService {
             conn.setAutoCommit(false);
 
             int orderId;
-            double total = 0;
+            double total = 0.0;
 
-            // 1️⃣ cart bul
+            // 1️⃣ CART BUL
             try (PreparedStatement ps = conn.prepareStatement(findCart)) {
                 ps.setInt(1, customerId);
                 ResultSet rs = ps.executeQuery();
+
                 if (!rs.next()) {
                     conn.rollback();
                     return false;
@@ -344,24 +353,24 @@ public class CartService {
                 orderId = rs.getInt("OrderID");
             }
 
-            // 2️⃣ stok düş + total hesapla
+            // 2️⃣ STOCK DÜŞ + TOTAL HESAPLA
             try (PreparedStatement ps = conn.prepareStatement(itemsSql)) {
                 ps.setInt(1, orderId);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
-                    int pid = rs.getInt("ProductID");
-                    int sid = rs.getInt("SellerID");
-                    int q   = rs.getInt("quantity");
-                    double price = rs.getDouble("unit_price");
+                    int productId = rs.getInt("ProductID");
+                    int sellerId  = rs.getInt("SellerID");
+                    int qty       = rs.getInt("quantity");
+                    double price  = rs.getDouble("unit_price");
 
-                    total += q * price;
+                    total += qty * price;
 
                     try (PreparedStatement upd = conn.prepareStatement(updateStock)) {
-                        upd.setInt(1, q);
-                        upd.setInt(2, pid);
-                        upd.setInt(3, sid);
-                        upd.setInt(4, q);
+                        upd.setInt(1, qty);
+                        upd.setInt(2, productId);
+                        upd.setInt(3, sellerId);
+                        upd.setInt(4, qty);
 
                         if (upd.executeUpdate() == 0) {
                             conn.rollback();
@@ -371,26 +380,24 @@ public class CartService {
                 }
             }
 
-            // 3️⃣ discount uygula
+            // 3️⃣ DISCOUNT UYGULA
             if (discountId != null) {
-                String percentSql = """
-                SELECT discount_percent
-                FROM DiscountCode
-                WHERE DiscountID = ?
-            """;
-
-                try (PreparedStatement ps = conn.prepareStatement(percentSql)) {
+                try (PreparedStatement ps = conn.prepareStatement(getDiscountPercent)) {
                     ps.setInt(1, discountId);
                     ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        int percent = rs.getInt(1);
-                        total = total * (100 - percent) / 100.0;
+
+                    if (!rs.next()) {
+                        conn.rollback();
+                        return false;
                     }
+
+                    int percent = rs.getInt("discount_percent");
+                    total = total * (100 - percent) / 100.0;
                 }
             }
 
-            // 4️⃣ discount order’a yaz
-            try (PreparedStatement ps = conn.prepareStatement(updateDiscount)) {
+            // 4️⃣ ORDER → DISCOUNTID YAZ
+            try (PreparedStatement ps = conn.prepareStatement(updateOrderDiscount)) {
                 if (discountId == null)
                     ps.setNull(1, Types.INTEGER);
                 else
@@ -400,7 +407,7 @@ public class CartService {
                 ps.executeUpdate();
             }
 
-            // 5️⃣ usage düş
+            // 5️⃣ DISCOUNT USAGE DÜŞ
             if (discountId != null) {
                 try (PreparedStatement ps = conn.prepareStatement(decrementUsage)) {
                     ps.setInt(1, discountId);
@@ -411,15 +418,15 @@ public class CartService {
                 }
             }
 
-            // 6️⃣ total_amount yaz ⭐⭐⭐
+            // 6️⃣ TOTAL_AMOUNT YAZ ⭐
             try (PreparedStatement ps = conn.prepareStatement(updateTotal)) {
                 ps.setDouble(1, total);
                 ps.setInt(2, orderId);
                 ps.executeUpdate();
             }
 
-            // 7️⃣ order submit
-            try (PreparedStatement ps = conn.prepareStatement(updateOrder)) {
+            // 7️⃣ ORDER SUBMIT
+            try (PreparedStatement ps = conn.prepareStatement(submitOrder)) {
                 ps.setInt(1, orderId);
                 ps.executeUpdate();
             }
