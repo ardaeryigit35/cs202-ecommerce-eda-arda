@@ -27,7 +27,7 @@ public class ManageShipmentsFrame extends JFrame {
         JScrollPane scroll = new JScrollPane(table);
 
         JComboBox<String> statusBox = new JComboBox<>(
-                new String[]{"PREPARING", "SHIPPED", "DELIVERED", "CANCELLED"}
+                new String[]{"SHIPPED", "DELIVERED", "CANCELLED"}
         );
 
         JButton updateBtn = new JButton("Update Status");

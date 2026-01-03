@@ -23,4 +23,24 @@ public class PaymentService {
             return false;
         }
     }
+    public static boolean cancelPayment(Connection conn, int orderId) {
+
+        String sql = """
+        UPDATE Payment
+        SET payment_status = 'REFUNDED'
+        WHERE OrderID = ?
+            AND payment_status = 'DONE'
+        """;
+
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

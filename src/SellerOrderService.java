@@ -4,9 +4,6 @@ import java.util.List;
 
 public class SellerOrderService {
 
-    // ========================
-    // DTO
-    // ========================
     public static class SellerOrder {
         public final int orderId;
         public final Timestamp orderDate;
@@ -27,13 +24,10 @@ public class SellerOrderService {
         }
     }
 
-    // ========================
-    // GET ORDERS FOR SELLER
-    // ========================
+
     public static List<SellerOrder> getOrdersForSeller(int sellerId) {
 
-        // 🔴 ÖNEMLİ: total artık OrderItems SUM değil
-        // ✅ OrderTable.total_amount kullanılıyor
+
         String sql = """
             SELECT o.OrderID,
                    o.order_date,
@@ -72,12 +66,10 @@ public class SellerOrderService {
         return list;
     }
 
-    // ========================
-    // CONFIRM ORDER (MARK AS PAID)
-    // ========================
+
     public static boolean confirmOrder(int orderId, int sellerId) {
 
-        // ✅ İNDİRİMLİ TOTAL BURADAN OKUNUR
+
         String totalSql = """
             SELECT total_amount
             FROM OrderTable
@@ -106,7 +98,6 @@ public class SellerOrderService {
 
             double totalAmount;
 
-            // 1️⃣ doğru (indirimli) total al
             try (PreparedStatement ps = conn.prepareStatement(totalSql)) {
                 ps.setInt(1, orderId);
                 ps.setInt(2, sellerId);
@@ -120,7 +111,6 @@ public class SellerOrderService {
                 }
             }
 
-            // 2️⃣ order -> PAID
             int updated;
             try (PreparedStatement ps = conn.prepareStatement(updateOrder)) {
                 ps.setInt(1, orderId);
@@ -132,8 +122,6 @@ public class SellerOrderService {
                 conn.rollback();
                 return false;
             }
-
-            // 3️⃣ payment oluştur (İNDİRİMLİ TUTAR)
             try (PreparedStatement ps = conn.prepareStatement(paySql)) {
                 ps.setInt(1, orderId);
                 ps.setDouble(2, totalAmount);
@@ -148,59 +136,64 @@ public class SellerOrderService {
             return false;
         }
     }
+    public static boolean cancelOrder(int orderId, int sellerId) {
+        System.out.println("ENTER cancelOrder orderId=" + orderId + " sellerId=" + sellerId);
 
-    // ========================
-    // SHIP ORDER
-    // ========================
-    public static boolean shipOrder(int orderId, int sellerId) {
 
-        String update = """
-            UPDATE OrderTable
-            SET order_status = 'SHIPPED'
-            WHERE OrderID = ?
-              AND SellerID = ?
-              AND order_status = 'PAID'
-              AND confirmed_by_seller = TRUE
-        """;
+        String cancelOrderSql = """
+        UPDATE OrderTable
+        SET order_status = 'CANCELLED'
+        WHERE OrderID = ?
+          AND SellerID = ?
+          AND order_status IN ('PENDING','PAID','SHIPPED')
+    """;
 
-        try (Connection conn = DB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(update)) {
 
-            ps.setInt(1, orderId);
-            ps.setInt(2, sellerId);
+        String cancelShipmentSql = """
+        UPDATE Shipment
+        SET shipment_status = 'CANCELLED'
+        WHERE OrderID = ?
+    """;
 
-            return ps.executeUpdate() == 1;
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        try (Connection conn = DB.getConnection()) {
+            conn.setAutoCommit(false);
+
+            int updated;
+            try (PreparedStatement ps = conn.prepareStatement(cancelOrderSql)) {
+                ps.setInt(1, orderId);
+                ps.setInt(2, sellerId);
+                updated = ps.executeUpdate();
+            }
+            System.out.println("updatedRows=" + updated);
+
+
+            if (updated != 1) {
+                conn.rollback();
+                return false;
+            }
+
+
+            try (PreparedStatement ps = conn.prepareStatement(cancelShipmentSql)) {
+                ps.setInt(1, orderId);
+                ps.executeUpdate();
+            }
+
+            if (!PaymentService.cancelPayment(conn, orderId)) {
+                conn.rollback();
+                return false;
+            }
+
+            conn.commit();
+            return true;
+
+        }  catch (Exception e) {
+        e.printStackTrace();
+        return false;
     }
 
-    // ========================
-    // MARK AS DELIVERED
-    // ========================
-    public static boolean markAsDelivered(int orderId, int sellerId) {
+}
 
-        String sql = """
-            UPDATE OrderTable
-            SET order_status = 'DELIVERED'
-            WHERE OrderID = ?
-              AND SellerID = ?
-              AND order_status = 'SHIPPED'
-        """;
 
-        try (Connection conn = DB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, orderId);
-            ps.setInt(2, sellerId);
-
-            return ps.executeUpdate() == 1;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 }

@@ -31,15 +31,13 @@ public class SellerOrdersFrame extends JFrame {
         JScrollPane scroll = new JScrollPane(table);
 
         JButton confirmBtn = new JButton("Confirm (Mark as Paid)");
-        JButton shipBtn = new JButton("Mark as Shipped");
-        JButton deliverBtn = new JButton("Mark as Delivered");
+        JButton cancelBtn = new JButton("Mark as Cancelled");
         JButton refreshBtn = new JButton("Refresh");
         JButton closeBtn = new JButton("Close");
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.add(confirmBtn);
-        bottom.add(shipBtn);
-        bottom.add(deliverBtn);
+        bottom.add(cancelBtn);
         bottom.add(refreshBtn);
         bottom.add(closeBtn);
 
@@ -49,17 +47,17 @@ public class SellerOrdersFrame extends JFrame {
         loadOrders();
 
         confirmBtn.addActionListener(e -> confirmSelectedOrder());
-        shipBtn.addActionListener(e -> shipSelectedOrder());
         refreshBtn.addActionListener(e -> loadOrders());
-        deliverBtn.addActionListener(e -> deliverSelectedOrder());
+        cancelBtn.addActionListener(e -> {
+            System.out.println("CANCEL BUTTON CLICKED");
+            cancelSelectedOrder();
+        });
         closeBtn.addActionListener(e -> dispose());
 
         setVisible(true);
     }
 
-    // =========================
-    // LOAD ORDERS
-    // =========================
+
     private void loadOrders() {
 
         model.setRowCount(0);
@@ -78,9 +76,6 @@ public class SellerOrdersFrame extends JFrame {
         }
     }
 
-    // =========================
-    // CONFIRM ORDER
-    // =========================
     private void confirmSelectedOrder() {
 
         int row = table.getSelectedRow();
@@ -107,10 +102,14 @@ public class SellerOrdersFrame extends JFrame {
         }
     }
 
-    // =========================
-    // SHIP ORDER
-    // =========================
-    private void shipSelectedOrder() {
+
+    private void cancelSelectedOrder() {
+        System.out.println("ENTER cancelSelectedOrder");
+        int rowq = table.getSelectedRow();
+        System.out.println("selectedRow=" + rowq);
+
+
+
 
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -118,45 +117,31 @@ public class SellerOrdersFrame extends JFrame {
             return;
         }
 
-        String status = model.getValueAt(row, 2).toString();
-        if (!"PAID".equals(status)) {
-            JOptionPane.showMessageDialog(this, "Only PAID orders can be shipped.");
+        Object stObj = model.getValueAt(row, 2);
+        String status = stObj == null ? "" : stObj.toString();
+        System.out.println("status=" + status);
+
+
+        if (!"PENDING".equals(status) && !"PAID".equals(status)&& !"SHIPPED".equals(status)) {
+            JOptionPane.showMessageDialog(this, "Only PENDING, PAID or SHIPPED orders can be cancelled.");
             return;
         }
 
-        int orderId = (int) model.getValueAt(row, 0);
+        Object idObj = model.getValueAt(row, 0);
+        System.out.println("idObj class=" + idObj.getClass() + " value=" + idObj);
 
-        boolean ok = SellerOrderService.shipOrder(orderId, sellerId);
+        int orderId = Integer.parseInt(idObj.toString());
 
+
+        boolean ok = SellerOrderService.cancelOrder(orderId, sellerId);
         if (ok) {
-            JOptionPane.showMessageDialog(this, "Order marked as SHIPPED.");
+            JOptionPane.showMessageDialog(this, "Order marked as CANCELLED.");
             loadOrders();
         } else {
             JOptionPane.showMessageDialog(this, "Operation failed.");
         }
+
     }
-    private void deliverSelectedOrder() {
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Select an order.");
-            return;
-        }
 
-        String status = model.getValueAt(row, 2).toString(); // status kolon indexin 2 ise
-        if (!"SHIPPED".equals(status)) {
-            JOptionPane.showMessageDialog(this, "Only SHIPPED orders can be delivered.");
-            return;
-        }
-
-        int orderId = (int) model.getValueAt(row, 0); // OrderID kolon indexin 0 ise
-
-        boolean ok = SellerOrderService.markAsDelivered(orderId, UserSession.getUserId());
-        if (ok) {
-            JOptionPane.showMessageDialog(this, "Order marked as DELIVERED.");
-            loadOrders();
-        } else {
-            JOptionPane.showMessageDialog(this, "Operation failed.");
-        }
-    }
 
 }
